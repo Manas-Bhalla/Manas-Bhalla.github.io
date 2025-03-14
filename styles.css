@@ -1,4 +1,17 @@
   body{
-    color: red;
-    
+    color: navy;
+    background-color: rgb(243, 243, 243);
   }
+
+  button{
+    border-color: azure;
+  }
+
+  a {padding: 5px;
+    border-style: ridge;
+    border-color: navy;
+    background: azure;
+    border-radius: 1px;
+    color: navy;
+    font-weight: 750;}
+    
