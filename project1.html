@@ -15,28 +15,45 @@
         welcome to the first project!
     </h1>
     <h2>March 22, 2025</h2>
+
+    <details margin="10px">
+        <summary>Show Command help (all commands)</summary>
+        <li>you can also use p or space for pause</li>
+        <li>d to debug</li>
+        <li>left arrow and right arrow change direction!</li>
+        <li>q and e also work to move left and right</li>
+        <li>change radius with comma and period</li>
+        <li>change gravity with up and down arrows</li>
+        <li>r will reset everything</li>
+        <li>1 flips x velocity</li>
+        <li>2 speeds up the ball</li>
+        <li>3 slows down the ball</li>
+    </details>
+
     <div id="control-bar"></div>
         <button id="pauseButton">Pause</button>
         <button id="debugButton">Debug</button>
+        <button id="resetButton">Reset</button>
+        <button id="changeDirectionButton">Change Direction</button>
     </div>
-    <p>you can also use P/space for pause and D for debug - left arrow and right arrow change direction!</p>
+    
+
+    
     <script>
         // add event listeners to the buttons
-        document.getElementById("pauseButton").addEventListener("click", function() {
-            paused = !paused;
-            console.log("Game paused: " + paused);
-        });
-
-        document.getElementById("debugButton").addEventListener("click", function() {
-            debug = !debug;
-            console.log("Debug mode: " + debug);
-        });
+        document.getElementById("pauseButton").addEventListener("click", function() {paused = !paused;});
+        document.getElementById("debugButton").addEventListener("click", function() {debug = !debug;});
+        document.getElementById("resetButton").addEventListener("click", function() {reset();});
+        document.getElementById("changeDirectionButton").addEventListener("click", function() {ball.velocityX = -ball.velocityX;});
     </script>
 </center>
 
 <div id="game-container">
     <canvas id="gameCanvas" width="1500" height="600"></canvas>
 </div>
+<center>
+    
+</center>
 
 <script>
     // Load the header 

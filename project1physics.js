@@ -3,6 +3,7 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
+
 let paused = false; // Declare the paused variable
 let debug = false; // Declare the debug variable
 
@@ -29,6 +30,14 @@ function handleKeydown(event) {
             // Handle right arrow key
             ball.velocityX = Math.abs(ball.velocityX);
             break;
+        case "q":
+            // Handle left arrow key
+            ball.velocityX = -Math.abs(ball.velocityX);
+            break;
+        case "e":
+            // Handle right arrow key
+            ball.velocityX = Math.abs(ball.velocityX);
+            break;
         case "d":
             // Toggle debug mode
             debug = !debug;
@@ -40,6 +49,58 @@ function handleKeydown(event) {
         case " ":
             // Toggle pause
             paused = !paused;
+            break;
+        case "r":
+            // Reset the ball position and velocity
+            reset();
+            break;
+        case ".":
+            // Increase the ball's radius
+            ball.radius += 1;
+            break;
+        case ",":
+            // Decrease the ball's radius
+            if (ball.radius > 1) { 
+                ball.radius -= 1;
+            } 
+            break;
+        case "ArrowUp":
+            // Increase the game speed
+            ball.gravity += .1;
+            break;
+        case "ArrowDown":
+            // Decrease the game speed
+            if (ball.gravity > .1) { 
+                ball.gravity -= .1;
+            } 
+            console.log("e");
+            break;
+        case "1":
+            // flip x velocity
+            ball.velocityX = -ball.velocityX;
+            break;
+        case "j":
+            // jump
+            ball.velocityY = -15;
+            break;
+        case "2":
+            // increase x velocity
+            if (ball.velocityX < 0) { // check if velocity is negative
+                ball.velocityX -= 1; // increase velocity to the left
+            }
+            else {
+                ball.velocityX += 1; // increase velocity to the right
+            }
+
+            break;
+        case "3":
+            // decrease x velocity
+            if (ball.velocityX < 0) { // check if velocity is negative
+                ball.velocityX += 1; // decrease velocity to the left
+            }
+            else {
+                ball.velocityX -= 1; // decrease velocity to the right
+            }
             break;
         default:
             break;
@@ -74,6 +135,10 @@ function updateAndDrawBall(){
 
     if (ball.y + ball.radius >= canvasHeight){
         ball.velocityY = -20;
+        ball.y = canvasHeight - ball.radius; // reset position
+        // console.log("radius: " + ball.radius);
+        // console.log("canvas height: " + canvasHeight);
+        // console.log("ball y: " + ball.y);
     }
 
     if (ball.x + ball.radius >= canvasWidth ){
@@ -102,6 +167,8 @@ function drawDebug(){
     ctx.fillText("Y: " + ball.y.toFixed(2), x, y + 20);
     ctx.fillText("Velocity x: " + ball.velocityX.toFixed(2), x, y + 40);
     ctx.fillText("Velocity y: " + ball.velocityY.toFixed(2), x, y + 60);
+    ctx.fillText("Radius: " + ball.radius, x, y + 80);
+    ctx.fillText("Gravity: " + ball.gravity.toFixed(1), x, y + 100);
 }
 
 function drawPausedMessage(){
@@ -116,6 +183,14 @@ function animate(){
     requestAnimationFrame(animate);
 }
 
+function reset(){
+    ball.x = canvasWidth / 2;
+    ball.y = 50;
+    ball.radius = 20;
+    ball.velocityX = 7.5;
+    ball.velocityY = 0;
+    ball.gravity = .5; // Reset the game speed
+}
 
 drawDebug(); 
 // draw debug to fix the bug where it changes the pause message location

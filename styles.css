@@ -67,3 +67,9 @@
     max-width: 90%;
   }
     
+  details {
+    background-color: rgb(245, 245, 245);
+    padding: 0px;
+    margin: 20px auto;
+    max-width: 90%;
+  }
