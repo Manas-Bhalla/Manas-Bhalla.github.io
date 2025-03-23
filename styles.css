@@ -1,17 +1,68 @@
+  
+  /* general style for body */
   body{
     color: navy;
-    background-color: rgb(243, 243, 243);
+    background-color: rgb(245, 245, 245);
   }
 
+  /* buttons */
   button{
     border-color: azure;
   }
 
+  /* links */
   a {padding: 5px;
     border-style: ridge;
     border-color: navy;
-    background: azure;
-    border-radius: 1px;
+    border-radius: 0px;
     color: navy;
-    font-weight: 750;}
+    font-weight: 100;}
+
+  /* nav bar */
+  nav {
+    background-color: rgb(220, 220, 220);;
+    overflow: hidden;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    padding: 10px 0;
+    text-align: center;
+    z-index: 1000; 
+  }
+  
+  /* Style the links */
+   nav a {
+    padding: 10px 25px;
+    display: inline-block;
+    background-color: lightgray;
+    text-decoration: none;
+    color: navy;
+    border-color: navy;
+  } 
+  
+  /* hovering effect */
+  nav a:hover {
+    background-color: rgb(173, 173, 173);
+    color: white;
+  }
+  
+  /* push stuff down */
+  body {
+    padding-top: 50px;
+  }
+
+  #game-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* height: 600px; adjust height when needed */
+    margin: 0 auto;
+    padding: 20px;
+}
+
+  canvas {
+    border: 2px solid navy;
+    background-color: white;
+    max-width: 90%;
+  }
     

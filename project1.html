@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>testing</title>
+    <link rel="icon" type="image/x-icon" href="peon.png">
+</head>
+<body>
+<center>
+    <div id = "header"></div> 
+
+    <h1 id = "ezTitle">
+        welcome to the first project!
+    </h1>
+    <h2>March 22, 2025</h2>
+    <div id="control-bar"></div>
+        <button id="pauseButton">Pause</button>
+        <button id="debugButton">Debug</button>
+    </div>
+    <p>you can also use P/space for pause and D for debug - left arrow and right arrow change direction!</p>
+    <script>
+        // let paused = false; // Declare the paused variable
+        // let debug = false; // Declare the debug variable
+        // Add event listeners to the buttons
+        document.getElementById("pauseButton").addEventListener("click", function() {
+            paused = !paused;
+            console.log("Game paused: " + paused);
+        });
+
+        document.getElementById("debugButton").addEventListener("click", function() {
+            debug = !debug;
+            console.log("Debug mode: " + debug);
+        });
+    </script>
+</center>
+
+<div id="game-container">
+    <canvas id="gameCanvas" width="1500" height="600"></canvas>
+</div>
+
+<script>
+    // Load the header 
+    fetch("header.html")
+        .then(response => response.text())
+        .then(data => document.getElementById("header").innerHTML = data);
+</script>
+<script src="index.js"></script>
+<script src="project1physics.js"></script>
+</body>
+</html>
