@@ -73,3 +73,29 @@
     margin: 20px auto;
     max-width: 90%;
   }
+
+
+  /* project 2 now */
+
+#game-container2 {
+  display: flex; /* Use flexbox for layout */
+  justify-content: flex-start; /* Align items to the left */
+  align-items: flex-start; /* Align items to the top */
+  margin: 0 auto; /* Center the container horizontally */
+  padding: 20px; /* Add padding around the container */
+  width: 90%; /* Ensure the container takes up 90% of the page width */
+}
+
+#gameCanvasProject2 {
+  width: 60%; /* Set the canvas width to 60% of the container */
+  height: auto; /* Maintain the aspect ratio */
+  border: 2px solid navy; /* Add a border to the canvas */
+  background-color: lightgreen; /* Add a background color for visibility */
+}
+
+#project2text {
+  max-width: 35%; /* Limit the width of the text */
+  margin-left: 20px; /* Add space between the canvas and the text */
+  font-size: 16px; /* Set a readable font size */
+  color: navy; /* Set the text color */
+}
