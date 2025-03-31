@@ -96,6 +96,6 @@
 #project2text {
   max-width: 35%; /* Limit the width of the text */
   margin-left: 20px; /* Add space between the canvas and the text */
-  font-size: 16px; /* Set a readable font size */
+  font-size: 18px; /* Set a readable font size */
   color: navy; /* Set the text color */
 }
