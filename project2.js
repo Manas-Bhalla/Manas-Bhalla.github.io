@@ -259,6 +259,7 @@ function reset() {
     laser.active = false; // Reset laser
 
     console.log("Game has been reset!");
+    calculateWeaponDamage(); // Initial calculation of weapon damage based on the default weapon
 }
 
 const arrows = []; // Array to store active arrows (projectiles)
