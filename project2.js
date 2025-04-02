@@ -63,6 +63,7 @@ canvas.addEventListener("click", (event) => {
 
 let paused = false; // Declare the paused variable
 let debug = false; // Declare the debug variable
+let godmode = false; // Declare the godmode variable 
 //player object
 var player = {
     x: 50, // Initial x position of the player
@@ -122,6 +123,13 @@ document.addEventListener("keydown", (event) => {
     switch (event.key) {
         case "z": // Toggle debug mode
             debug = !debug; // Toggle the debug variable
+            break;
+        case "e": // Spawn an enemy (for testing purposes)
+            console.log("Spawning enemy for testing purposes."); // Log for debugging
+            spawnEnemy1();
+            break;
+        case "g": //god mode
+            godmode = !godmode; // Toggle god mode (not implemented in this code, but can be used to make player invincible)
             break;
         case " ": // Toggle pause
             paused = !paused; // Toggle the paused variable
@@ -230,7 +238,10 @@ function draw() {
     mouse.angleDegrees = mouse.angle * (180 / Math.PI); // Convert the angle from radians to degrees (not used in this code but can be useful for other calculations)
     // The mouse.angle now contains the angle in radians from the player to the mouse position
 
-    
+    if (godmode){
+        player.health = 100; // Ensure player health is max if godmode is active
+    }
+
     requestAnimationFrame(draw); // Request the next frame for animation
 
 }
@@ -260,6 +271,8 @@ function reset() {
 
     console.log("Game has been reset!");
     calculateWeaponDamage(); // Initial calculation of weapon damage based on the default weapon
+
+    
 }
 
 const arrows = []; // Array to store active arrows (projectiles)
@@ -557,7 +570,7 @@ function spawnEnemy1(){
     if (Math.random() < 0.5) {
         x = 0;
     } else {
-        x = 1000;
+        x = 980;
     }
     const y = Math.random() * 600; // Random Y in range 0-600
 
@@ -629,7 +642,7 @@ function drawText(){
         ctx.fillText(`diffy: ${Math.round(diffy)}`, 10, 130); // Display the difference in y position from player to mouse
         ctx.fillText(`Angle to Mouse: ${mouse.angle.toFixed(2)} radians`, 10, 150); // Display the angle from player to mouse in radians
         ctx.fillText(`Angle to Mouse: ${mouse.angleDegrees.toFixed(2)} degrees`, 10, 170); // Display the angle from player to mouse in degrees (optional)
-
+        ctx.fillText("Godmode: " + godmode, 10, 190); // Display godmode status (if enabled)
     }
     ctx.fillStyle = "red"; // Set the fill color for player information
     ctx.fillText(`Speed: ${player.speed}`, canvas.width-200, 30); // Display player speed
@@ -641,6 +654,7 @@ function drawText(){
     ctx.fillText(`Weapon buff: ${player.weaponBuff}`, canvas.width-200, 150); // Display player weapon size multiplier
     ctx.fillText(`Alive enemies: ${enemies.length}`, canvas.width-200, 170); // Display the number of alive enemies
     ctx.fillText(`current dmg: ${currentWeaponDamage}`, canvas.width-200, 190); // Display the current weapon damage (calculated based on the weapon type and buff)
+    
 }
 
 calculateWeaponDamage(); // Initial calculation of weapon damage based on the default weapon
