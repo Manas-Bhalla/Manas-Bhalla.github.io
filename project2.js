@@ -50,8 +50,7 @@ canvas.addEventListener("click", (event) => {
             case "sword": startSwordSwing(); // Call the function to start the sword swing animation
                 break;
             case "staff":
-                // Logic for staff 
-                console.log("Staff used!"); // Placeholder for staff action
+                // Logic for staff (none here)
                 break;
             default: console.log(`No action for: ${player.weapon}`); 
                 break;
@@ -87,7 +86,7 @@ var player = {
 };
 
 
-
+var debugEnemySpawnCount = 0;
 const keys = {}; // Object to keep track of key states
 // This object will store the state of each key (pressed or not)
 
@@ -96,6 +95,14 @@ const pauseButton = document.getElementById("pauseButtonProject2");
 const debugButton = document.getElementById("debugButtonProject2");
 const resetButton = document.getElementById("resetButtonProject2");
 const spawnEnemyButton = document.getElementById("spawnEnemyButtonProject2");
+const numberOfEnemiesInputBox = document.getElementById("userInputBox");
+
+numberOfEnemiesInputBox.addEventListener("input", (event) => {
+    if (event.target.value >= 1000){event.target.value = 999};
+
+    debugEnemySpawnCount = parseInt(event.target.value, 10); // Parse the input value as an integer
+    
+});
 
 // Add event listeners for the buttons
 pauseButton.addEventListener("click", () => {
@@ -116,7 +123,7 @@ resetButton.addEventListener("click", () => {
 spawnEnemyButton.addEventListener("click", () => {
     // Logic to spawn an enemy (not implemented in this code)
     console.log("Spawn enemy button clicked!"); // Placeholder for enemy spawn action
-    spawnEnemy1(); // Call the function to spawn an enemy
+    spawnEnemies(); // Call the function to spawn an enemy
 });
 
 document.addEventListener("keydown", (event) => {
@@ -125,8 +132,7 @@ document.addEventListener("keydown", (event) => {
             debug = !debug; // Toggle the debug variable
             break;
         case "e": // Spawn an enemy (for testing purposes)
-            console.log("Spawning enemy for testing purposes."); // Log for debugging
-            spawnEnemy1();
+            spawnEnemies();
             break;
         case "g": //god mode
             godmode = !godmode; // Toggle god mode (not implemented in this code, but can be used to make player invincible)
@@ -138,15 +144,18 @@ document.addEventListener("keydown", (event) => {
             reset(); // Call the reset function to reset player stats
             break;
         case "1": // Select weapon 1 (e.g., sword)
-            player.weapon = "sword";
+            if (!paused){player.weapon = "sword";}
+            else{shop.buyMaxHealth();}
             calculateWeaponDamage();
             break;
         case "2": // Select weapon 2 (e.g., bow)
-            player.weapon = "bow";
+            if (!paused){player.weapon = "bow";}
+            else{shop.buySpeed();}
             calculateWeaponDamage();
             break;
         case "3": // Select weapon 3 (e.g., staff)
-            player.weapon = "staff";
+            if (!paused){player.weapon = "staff";}
+            else{shop.buyWeaponBuff();}
             calculateWeaponDamage();
             break;
     }
@@ -157,7 +166,7 @@ function calculateWeaponDamage(){
     // Calculate the weapon damage based on the current weapon and player stats
     switch (player.weapon) {
         case "sword":
-            currentWeaponDamage = 25 * player.weaponBuff; // Sword has a base damage of 10, multiplied by the weapon buff
+            currentWeaponDamage = swordSwing.damage * player.weaponBuff; // Sword has a base damage of 10, multiplied by the weapon buff
             break;
         case "bow":
             currentWeaponDamage = 15 * player.weaponBuff; // Bow has a base damage of 10, multiplied by the weapon buff
@@ -184,12 +193,8 @@ function draw() {
     
     ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas before drawing
     
-    if (paused) {
-        // If the game is paused, don't draw anything else
-        ctx.fillStyle = "rgba(0, 0, 0, 0.5)"; // Semi-transparent background for the pause overlay
-        ctx.fillText("Game Paused", canvas.width / 2 - 70, canvas.height / 2);
-        laser.active = false; // Deactivate the laser when the game is paused
-    }
+    
+    if (paused) {laser.active = false;} // Deactivate the laser when the game is paused
 
 
     // Handle player movement based on active keys
@@ -215,7 +220,7 @@ function draw() {
     //player icon
     ctx.fillRect(player.x, player.y, player.width, player.height); // Draw a rectangle
 
-    drawText();
+    
 
     if(player.x<0){player.x=0}
     if(player.x + player.width > canvas.width){player.x = canvas.width - player.width} // Prevent player from going out of bounds on the right side
@@ -239,9 +244,10 @@ function draw() {
     // The mouse.angle now contains the angle in radians from the player to the mouse position
 
     if (godmode){
-        player.health = 100; // Ensure player health is max if godmode is active
+        player.health = player.maxHealth; // Ensure player health is max if godmode is active
     }
 
+    drawText(); //draw all the text
     requestAnimationFrame(draw); // Request the next frame for animation
 
 }
@@ -254,7 +260,7 @@ function reset() {
     player.gold = 0; // Reset gold collected
     player.health = player.maxHealth; // Reset health to max health
     player.weapon = "sword"; // Reset weapon to default
-    player.wepaonBuff = 1; // Reset weapon size multiplier
+    player.weaponBuff = 1; // Reset weapon size multiplier
     player.damageReduction = 0; // Reset damage reduction
 
     // Reset game state
@@ -369,7 +375,7 @@ let swordSwing = {
     radius: 75, // Radius of the swing arc
     duration: 150, // Duration of the swing in milliseconds
     startTime: 0, // Timestamp when the swing started
-    damage: 2 * player.weaponBuff, 
+    damage: .5, 
 };
 
 function startSwordSwing() {
@@ -412,9 +418,7 @@ function updateSwordSwing() {
         const enemy = enemies[i];
 
         // Skip if this enemy has already been hit during this swing
-        if (hitEnemies.has(enemy)) {
-            continue;
-        }
+        
 
         // Calculate the distance from the enemy to the player's center
         const dx = enemy.x + enemy.size / 2 - player.midx;
@@ -422,8 +426,8 @@ function updateSwordSwing() {
         const distance = Math.sqrt(dx * dx + dy * dy);
 
         // Check if the enemy is within the swing radius
-        if (distance <= swordSwing.radius + enemy.size / 2) {
-            enemy.health -= swordSwing.damage; // Reduce enemy health by sword damage
+        if (distance <= player.weaponBuff * swordSwing.radius + enemy.size / 2) {
+            enemy.health -= swordSwing.damage * player.weaponBuff; // Reduce enemy health by sword damage
             hitEnemies.add(enemy); // Mark this enemy as hit
         }
     }
@@ -440,7 +444,6 @@ let laser = {
     color: "rgba(0, 0, 255, 0.7)", // Laser color (semi-transparent blue)
     width: 15, // Laser width
     damage: 1, // Damage dealt by the laser (can be adjusted based on weapon buff)
-    length: 500,
 };
 
 function updateLaser() {
@@ -457,6 +460,7 @@ function updateLaser() {
     var laserLength = 500 * player.weaponBuff; //large value for the laser's length
     laser.width = 15 * player.weaponBuff; // Update the width of the laser based on the player's weapon buff
 
+    // console.log(laserLength);
 
     laser.endX = laser.startX + Math.cos(mouse.angle) * laserLength;
     laser.endY = laser.startY + Math.sin(mouse.angle) * laserLength;
@@ -486,7 +490,7 @@ function updateLaser() {
         if (distanceToLaser <= laser.width) {
             // Enemy is within the laser's width
             const laserToEnemyDistance = Math.sqrt(dx * dx + dy * dy); // Distance from laser start to enemy center
-            if (laserToEnemyDistance <= laser.length) {
+            if (laserToEnemyDistance <= laserLength) {
             // Enemy is also within the laser's length
             const dotProduct = dx * Math.cos(mouse.angle) + dy * Math.sin(mouse.angle); // Calculate dot product
             if (dotProduct > 0) {
@@ -543,7 +547,7 @@ class basicEnemy1 {
         if (this.x < player.x + player.width && this.x + this.size > player.x && this.y < player.y + player.height && this.y + this.size > player.y) {
             // Collision detected, apply damage to the player
             player.health -= this.contactDamage; // Reduce player's health by enemy's contact damage
-            console.log(`Player hit! Health: ${player.health}`); // Log the player's health after being hit
+            // console.log(`Player hit! Health: ${player.health}`); // Log the player's health after being hit
             this.health = 0; //kill enemy after reaching player
         }
 
@@ -644,6 +648,25 @@ function drawText(){
         ctx.fillText(`Angle to Mouse: ${mouse.angleDegrees.toFixed(2)} degrees`, 10, 170); // Display the angle from player to mouse in degrees (optional)
         ctx.fillText("Godmode: " + godmode, 10, 190); // Display godmode status (if enabled)
     }
+
+    if (paused) {
+        // If the game is paused, don't draw anything else
+        ctx.fillStyle = "rgba(0, 0, 0, 0.5)"; // Semi-transparent background for the pause overlay
+        ctx.fillText("Game Paused", canvas.width / 2 - 70, canvas.height * 1/3);
+        
+        //display the shop's contents:
+        // draw small white box with outline to hold the shop
+        
+        ctx.fillStyle = "gray";
+        ctx.fillText("press the following to use the shop", 10, 425);
+        ctx.fillText("1 - buy max health", 10, 450);
+        ctx.fillText("2 - buy speed", 10, 475);
+        ctx.fillText("3 - buy weapon buff", 10, 500);
+        ctx.fillText("Gurrent Gold: " + player.gold, 10, 525);
+  
+    }
+
+    //general player info
     ctx.fillStyle = "red"; // Set the fill color for player information
     ctx.fillText(`Speed: ${player.speed}`, canvas.width-200, 30); // Display player speed
     ctx.fillText(`Gold: ${player.gold}`, canvas.width-200, 50); // Display player gold
@@ -652,9 +675,52 @@ function drawText(){
     ctx.fillText(`Max Health: ${player.maxHealth}`, canvas.width-200, 110); // Display player max health
     ctx.fillText(`Armor: ${player.damageReduction}`, canvas.width-200, 130); // Display player damage reduction
     ctx.fillText(`Weapon buff: ${player.weaponBuff}`, canvas.width-200, 150); // Display player weapon size multiplier
-    ctx.fillText(`Alive enemies: ${enemies.length}`, canvas.width-200, 170); // Display the number of alive enemies
-    ctx.fillText(`current dmg: ${currentWeaponDamage}`, canvas.width-200, 190); // Display the current weapon damage (calculated based on the weapon type and buff)
+    ctx.fillText(`current dmg: ${currentWeaponDamage}`, canvas.width-200, 170); // Display the current weapon damage (calculated based on the weapon type and buff)
+    ctx.fillText(`Alive enemies: `, canvas.width-200, 190); // Display the number of alive enemies
+    ctx.fillText(`${enemies.length}`, canvas.width-200, 210); // Display the number of alive enemies
+
+
     
+}
+
+let shop = { //holds the functions for buying stuff
+    buySpeed: function() {
+        if(godmode){player.speed += .1;}
+        else if (player.gold >= 100) {
+            player.speed += 0.1;
+            player.gold -= 100;
+        } 
+    },
+
+    buyMaxHealth: function() {
+        if(godmode){
+            player.maxHealth += 10;
+            player.Health += 10;
+        }
+        else if (player.gold >= 100) {
+            player.maxHealth += 10;
+            player.health += 10;
+            player.gold -= 100;
+        }
+    },
+
+    buyWeaponBuff: function() {
+        if(godmode){player.weaponBuff += .1;}
+        else if (player.gold >= 100) {
+            player.weaponBuff += 0.1;
+            player.gold -= 100;
+        }
+    }
+}
+
+function spawnEnemies(){
+    if (!isNaN(debugEnemySpawnCount) && debugEnemySpawnCount > 0) {
+        for (let i = 0; i < debugEnemySpawnCount; i++) {
+            spawnEnemy1(); // Spawn the specified number of enemies
+        }
+    } else{
+        spawnEnemy1();
+    }
 }
 
 calculateWeaponDamage(); // Initial calculation of weapon damage based on the default weapon
