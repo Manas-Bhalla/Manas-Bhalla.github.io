@@ -278,7 +278,7 @@ function reset() {
     console.log("Game has been reset!");
     calculateWeaponDamage(); // Initial calculation of weapon damage based on the default weapon
 
-    
+    shop.price = 100; // Reset shop price to base value    
 }
 
 const arrows = []; // Array to store active arrows (projectiles)
@@ -569,7 +569,7 @@ class basicEnemy1 {
     }
 }
 
-function spawnEnemy1(){
+function spawnEnemy1(speedMultiplier = 1, healthMultiplier = 1, sizeMultiplier = 5) { 
     let x = 0;
     if (Math.random() < 0.5) {
         x = 0;
@@ -581,10 +581,10 @@ function spawnEnemy1(){
     // make some stats for what to send over to the enemy constructor
 
     
-    let speed = 1 * difficultyMultiplier * (1 + (Math.random() * 0.4 - 0.2)); // Speed of the enemy varies by ±20%
-    let health = 30 * difficultyMultiplier; // Health of the enemy
+    let speed = 1 * speedMultiplier * difficultyMultiplier * (1 + (Math.random() * 0.4 - 0.2)); // Speed of the enemy varies by ±20%
+    let health = 30 * healthMultiplier * difficultyMultiplier; // Health of the enemy
     let contactDamage = 10 * difficultyMultiplier; // Damage dealt by the enemy on contact
-    let size = 20; // Size of the enemy
+    let size = 20 * sizeMultiplier * (1+difficultyMultiplier/20); // Size of the enemy
     let r = -100+Math.floor(Math.random() * 256); // Random red value (0-255)
     let g = -100+Math.floor(Math.random() * 156); // Random green value (0-255)
     let b = -100+Math.floor(Math.random() * 256); // Random blue value (0-255)
@@ -602,13 +602,16 @@ function drawandUpdateEnemies() {
         ctx.fillStyle = enemy.color; // Set the fill color for the enemy (use the randomized color)
         ctx.fillRect(enemy.x, enemy.y, enemy.size, enemy.size); // Draw the enemy as a rectangle
 
+        const healthPercentage = enemy.health / enemy.maxHealth; // Calculate the health percentage
+        if (healthPercentage < 1 ){
         // draw health bar above the enemy 
         ctx.fillStyle = "red"; // Set the fill color for the health bar
         ctx.fillRect(enemy.x, enemy.y - 10, enemy.size, 5); // Draw the background of the health bar
 
-        const healthPercentage = enemy.health / enemy.maxHealth; // Calculate the health percentage
         ctx.fillStyle = "green"; // Set the fill color for the remaining health
         ctx.fillRect(enemy.x, enemy.y - 10, enemy.size * healthPercentage, 5); // Draw the remaining health
+        }
+        
         
 
         // Remove the enemy if its health is zero or less
@@ -622,12 +625,12 @@ function drawandUpdateEnemies() {
 
 
 
-// function updateRound(){
-//     currentRound++; // Increment the current round number
-//     difficultyMultiplier = 1 + (0.05 * (currentRound-1)); // Update the difficulty multiplier based on the new round number
-//     console.log(`Round ${currentRound} started!`); // Log the start of the new round
-//     spawnEnemy(); // Spawn a new enemy for the next round
-// }
+function nextRound(){
+    currentRound++; // Increment the current round number
+    difficultyMultiplier = 1 + (0.05 * (currentRound-1)); // Update the difficulty multiplier based on the new round number
+    console.log(`Round ${currentRound} started!`); // Log the start of the new round
+    spawnEnemy(); // Spawn a new enemy for the next round
+}
 
 function drawText(){
     
@@ -663,6 +666,7 @@ function drawText(){
         ctx.fillText("2 - buy speed", 10, 475);
         ctx.fillText("3 - buy weapon buff", 10, 500);
         ctx.fillText("Gurrent Gold: " + player.gold, 10, 525);
+        ctx.fillText("current shop price: " + shop.price, 10, 550); // Display the current price of the shop item (if applicable)
   
     }
 
@@ -684,11 +688,18 @@ function drawText(){
 }
 
 let shop = { //holds the functions for buying stuff
+    price: 100, // Base price for shop items (can be adjusted)
+
+    increasePrice: function() {
+        this.price = Math.floor(this.price * 1.1+25); // Increase the price by 10% after each purchase
+    },
+
     buySpeed: function() {
         if(godmode){player.speed += .1;}
-        else if (player.gold >= 100) {
+        else if (player.gold >= this.price) {
             player.speed += 0.1;
-            player.gold -= 100;
+            player.gold -= this.price;
+            this.increasePrice(); // Increase the price after a successful purchase
         } 
     },
 
@@ -697,18 +708,22 @@ let shop = { //holds the functions for buying stuff
             player.maxHealth += 10;
             player.Health += 10;
         }
-        else if (player.gold >= 100) {
+        else if (player.gold >= this.price) {
             player.maxHealth += 10;
             player.health += 10;
-            player.gold -= 100;
+            player.gold -= this.price;
+            this.increasePrice(); // Increase the price after a successful purchase
+
         }
     },
 
     buyWeaponBuff: function() {
         if(godmode){player.weaponBuff += .1;}
-        else if (player.gold >= 100) {
-            player.weaponBuff += 0.1;
-            player.gold -= 100;
+        else if (player.gold >= this.price) {
+            player.weaponBuff += 0.1; 
+            player.gold -= this.price;
+            this.increasePrice(); // Increase the price after a successful purchase
+
         }
     }
 }
