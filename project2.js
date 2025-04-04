@@ -487,10 +487,10 @@ function updateLaser() {
         const dx = enemy.x + enemy.size / 2 - laser.startX; // Distance from laser start to enemy center (x-axis)
         const dy = enemy.y + enemy.size / 2 - laser.startY; // Distance from laser start to enemy center (y-axis)
         const distanceToLaser = Math.abs(dy * Math.cos(mouse.angle) - dx * Math.sin(mouse.angle)); // Perpendicular distance to laser
-        if (distanceToLaser <= laser.width) {
+        if (distanceToLaser <= laser.width + enemy.size / 2) { // consider enemy size
             // Enemy is within the laser's width
             const laserToEnemyDistance = Math.sqrt(dx * dx + dy * dy); // Distance from laser start to enemy center
-            if (laserToEnemyDistance <= laserLength) {
+            if (laserToEnemyDistance <= laserLength + enemy.size / 2) { // consider enemy size
             // Enemy is also within the laser's length
             const dotProduct = dx * Math.cos(mouse.angle) + dy * Math.sin(mouse.angle); // Calculate dot product
             if (dotProduct > 0) {
@@ -569,7 +569,7 @@ class basicEnemy1 {
     }
 }
 
-function spawnEnemy1(speedMultiplier = 1, healthMultiplier = 1, sizeMultiplier = 5) { 
+function spawnEnemy1(speedMultiplier = 1, healthMultiplier = 1, sizeMultiplier = 1) { 
     let x = 0;
     if (Math.random() < 0.5) {
         x = 0;
