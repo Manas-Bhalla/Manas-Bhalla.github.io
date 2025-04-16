@@ -29,6 +29,7 @@ canvas.addEventListener("mousedown", (event) => {
     if (player.weapon === "staff" && !paused) {
         laser.active = true; // Activate the laser
     }
+    
 });
 
 canvas.addEventListener("mouseup", (event) => {
@@ -94,6 +95,7 @@ const keys = {}; // Object to keep track of key states
 const pauseButton = document.getElementById("pauseButtonProject2");
 const debugButton = document.getElementById("debugButtonProject2");
 const resetButton = document.getElementById("resetButtonProject2");
+const nextRoundButton = document.getElementById("nextRoundButtonProject2");
 const spawnEnemyButton = document.getElementById("spawnEnemyButtonProject2");
 const numberOfEnemiesInputBox = document.getElementById("userInputBox");
 
@@ -120,6 +122,11 @@ resetButton.addEventListener("click", () => {
     reset(); // Call the reset function to reset player stats
 });
 
+nextRoundButton.addEventListener("click", () => {
+    nextRound(); // Call the function to start the next round
+});
+
+
 spawnEnemyButton.addEventListener("click", () => {
     // Logic to spawn an enemy (not implemented in this code)
     console.log("Spawn enemy button clicked!"); // Placeholder for enemy spawn action
@@ -142,6 +149,9 @@ document.addEventListener("keydown", (event) => {
             break;
         case "r": // Reset player position and stats
             reset(); // Call the reset function to reset player stats
+            break;
+        case "n": // Next round
+            nextRound(); // Call the function to start the next round
             break;
         case "1": // Select weapon 1 (e.g., sword)
             if (!paused){player.weapon = "sword";}
@@ -650,6 +660,7 @@ function drawText(){
         ctx.fillText(`Angle to Mouse: ${mouse.angle.toFixed(2)} radians`, 10, 150); // Display the angle from player to mouse in radians
         ctx.fillText(`Angle to Mouse: ${mouse.angleDegrees.toFixed(2)} degrees`, 10, 170); // Display the angle from player to mouse in degrees (optional)
         ctx.fillText("Godmode: " + godmode, 10, 190); // Display godmode status (if enabled)
+        ctx.fillText("difficulty Multiplier: " + difficultyMultiplier.toFixed(3), 10, 210); // Display the current difficulty multiplier
     }
 
     if (paused) {
@@ -683,9 +694,16 @@ function drawText(){
     ctx.fillText(`Alive enemies: `, canvas.width-200, 190); // Display the number of alive enemies
     ctx.fillText(`${enemies.length}`, canvas.width-200, 210); // Display the number of alive enemies
 
-
+    //tell user to start new round with "n" key when there are no enemies left
+    if (enemies.length == 0) {
+        ctx.fillStyle = "black"; // Set the fill color for the message
+        ctx.font = "24px times new roman"; // Set the font for player information
+        ctx.fillText("Press 'n' to start the next round!", canvas.width/3, 30); // Display the message to start the next round
+    }
     
 }
+
+
 
 let shop = { //holds the functions for buying stuff
     price: 100, // Base price for shop items (can be adjusted)
@@ -695,7 +713,7 @@ let shop = { //holds the functions for buying stuff
     },
 
     buySpeed: function() {
-        if(godmode){player.speed += .1;}
+        if(godmode){player.speed += .2;}
         else if (player.gold >= this.price) {
             player.speed += 0.1;
             player.gold -= this.price;
@@ -740,3 +758,28 @@ function spawnEnemies(){
 
 calculateWeaponDamage(); // Initial calculation of weapon damage based on the default weapon
 draw(); // Call the draw function
+
+function nextRound() {
+    currentRound++; // Increment the current round number
+    difficultyMultiplier = 1 + (0.05 * (currentRound-1)); // Update the difficulty multiplier based on the new round number
+    
+    //spawn next round's enemies
+    const basicEnemiesToSpawn = Math.floor(10 * currentRound * difficultyMultiplier); // Calculate the number of enemies to spawn based on the current round and difficulty multiplier
+    for (var i = 0; i < basicEnemiesToSpawn; i++){
+        spawnEnemy1(); // Spawn a new enemy for the next round
+    }
+
+    //boss enemy for each round!
+    if (currentRound % 5 === 0) { // Every 5 rounds, spawn a boss enemy
+        spawnEnemy1(.75, 10, 5); // Call the function to spawn a boss enemy
+    }
+
+    // Display "Round has begun!" message
+    const messageDuration = 2000; // Duration in milliseconds
+    const messageStartTime = performance.now();
+
+    
+
+    displayRoundMessage();
+}
+
