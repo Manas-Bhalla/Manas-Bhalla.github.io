@@ -650,10 +650,10 @@ function drawText(){
 
     if (debug) {
         // If debug mode is enabled, display additional information
-        ctx.fillText(`Player Position: (${player.x}, ${player.y})`, 10, 30); // Display player position
+        ctx.fillText(`Player Position: (${player.x.toFixed(2)}, ${player.y.toFixed(2)})`, 10, 30); // Display player position
         ctx.fillText(`mouse Position: (${Math.floor(mouse.x)}, ${Math.floor(mouse.y)})`, 10, 50); // Display mouse position
         ctx.fillText(`current weapon: ${player.weapon}`, 10, 70); // Display the current weapon name
-        ctx.fillText(`Player Center: (${player.midx}, ${player.midy})`, 10, 90); // Display player center position
+        ctx.fillText(`Player Center: (${player.midx.toFixed(2)}, ${player.midy.toFixed(2)})`, 10, 90); // Display player center position
 
         ctx.fillText(`diffx: ${Math.round(diffx)}`, 10, 110); // Display the difference in x position from player to mouse
         ctx.fillText(`diffy: ${Math.round(diffy)}`, 10, 130); // Display the difference in y position from player to mouse
@@ -683,14 +683,14 @@ function drawText(){
 
     //general player info
     ctx.fillStyle = "red"; // Set the fill color for player information
-    ctx.fillText(`Speed: ${player.speed}`, canvas.width-200, 30); // Display player speed
+    ctx.fillText(`Speed: ${player.speed.toFixed(2)}`, canvas.width-200, 30); // Display player speed
     ctx.fillText(`Gold: ${player.gold}`, canvas.width-200, 50); // Display player gold
     ctx.fillText(`Round: ${currentRound}`, canvas.width-200, 70); // Display player rounds
     ctx.fillText(`Health: ${player.health}`, canvas.width-200, 90); // Display player health
     ctx.fillText(`Max Health: ${player.maxHealth}`, canvas.width-200, 110); // Display player max health
     ctx.fillText(`Armor: ${player.damageReduction}`, canvas.width-200, 130); // Display player damage reduction
-    ctx.fillText(`Weapon buff: ${player.weaponBuff}`, canvas.width-200, 150); // Display player weapon size multiplier
-    ctx.fillText(`current dmg: ${currentWeaponDamage}`, canvas.width-200, 170); // Display the current weapon damage (calculated based on the weapon type and buff)
+    ctx.fillText(`Weapon buff: ${player.weaponBuff.toFixed(2)}`, canvas.width-200, 150); // Display player weapon size multiplier
+    ctx.fillText(`current dmg: ${currentWeaponDamage.toFixed(2)}`, canvas.width-200, 170); // Display the current weapon damage (calculated based on the weapon type and buff)
     ctx.fillText(`Alive enemies: `, canvas.width-200, 190); // Display the number of alive enemies
     ctx.fillText(`${enemies.length}`, canvas.width-200, 210); // Display the number of alive enemies
 
