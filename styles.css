@@ -100,4 +100,27 @@
   color: navy; /* Set the text color */
 }
 
+/* projects page */
+.individualProjectExplanation a {
+  padding: 10px 25px;
+  display: inline-block;
+  background-color: lightgray;
+  text-decoration: none;
+  color: navy;
+  border-color: navy;
+}
+
+.individualProjectExplanation a:hover {
+  background-color: rgb(173, 173, 173);
+  color: white;
+}
+
+.individualProjectExplanation {
+  max-width: 75%;
+  margin: 0 auto;
+  padding: 10px;
+  background-color: rgb(245, 245, 245);
+  border-top: 2px solid navy;
+  
+}
 

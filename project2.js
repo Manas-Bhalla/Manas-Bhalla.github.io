@@ -6,6 +6,7 @@ var diffy = 0; // Difference in y position from player to mouse
 
 var currentRound = 1; // Current round number
 var difficultyMultiplier = 1 + (0.05 * (currentRound-1)); // Multiplier for rounds (not used in this code but can be useful for other calculations)
+var gameOver = false;
 
 //mouse properties
 let mouse = {
@@ -257,6 +258,15 @@ function draw() {
         player.health = player.maxHealth; // Ensure player health is max if godmode is active
     }
 
+    if (player.health <= 0) {
+        gameOver = true; // Set gameOver to true if player health is zero or less
+    }
+    else{
+        gameOver = false; // Set gameOver to false if player health is above zero
+    }
+
+    checkGameOver(); // Check if the game is over
+
     drawText(); //draw all the text
     requestAnimationFrame(draw); // Request the next frame for animation
 
@@ -288,7 +298,9 @@ function reset() {
     console.log("Game has been reset!");
     calculateWeaponDamage(); // Initial calculation of weapon damage based on the default weapon
 
-    shop.price = 100; // Reset shop price to base value    
+    shop.price = 100; // Reset shop price to base value  
+    paused = false; // Unpause the game after reset
+    gameOver = false; // Reset game over state  
 }
 
 const arrows = []; // Array to store active arrows (projectiles)
@@ -671,6 +683,8 @@ function drawText(){
         //display the shop's contents:
         // draw small white box with outline to hold the shop
         
+
+        if (!gameOver) {
         ctx.fillStyle = "gray";
         ctx.fillText("press the following to use the shop", 10, 425);
         ctx.fillText("1 - buy max health", 10, 450);
@@ -678,10 +692,12 @@ function drawText(){
         ctx.fillText("3 - buy weapon buff", 10, 500);
         ctx.fillText("Gurrent Gold: " + player.gold, 10, 525);
         ctx.fillText("current shop price: " + shop.price, 10, 550); // Display the current price of the shop item (if applicable)
-  
+        }
     }
 
-    //general player info
+
+    //general player info if game is not over yet
+    if (!gameOver) {
     ctx.fillStyle = "red"; // Set the fill color for player information
     ctx.fillText(`Speed: ${player.speed.toFixed(2)}`, canvas.width-200, 30); // Display player speed
     ctx.fillText(`Gold: ${player.gold}`, canvas.width-200, 50); // Display player gold
@@ -693,7 +709,8 @@ function drawText(){
     ctx.fillText(`current dmg: ${currentWeaponDamage.toFixed(2)}`, canvas.width-200, 170); // Display the current weapon damage (calculated based on the weapon type and buff)
     ctx.fillText(`Alive enemies: `, canvas.width-200, 190); // Display the number of alive enemies
     ctx.fillText(`${enemies.length}`, canvas.width-200, 210); // Display the number of alive enemies
-
+    }
+    
     //tell user to start new round with "n" key when there are no enemies left
     if (enemies.length == 0) {
         ctx.fillStyle = "black"; // Set the fill color for the message
@@ -781,5 +798,18 @@ function nextRound() {
     
 
     displayRoundMessage();
+}
+
+function checkGameOver(){
+    if (gameOver) {
+        ctx.fillStyle = "rgba(0, 0, 0, 1)"; // Semi-transparent background for the game over overlay
+        ctx.fillRect(0, 0, canvas.width, canvas.height); // Draw the overlay
+        ctx.fillStyle = "white"; // Set the fill color for the game over text
+        ctx.font = "48px times new roman"; // Set the font for the game over text
+        ctx.fillText("Game Over", canvas.width / 2 - 100, canvas.height / 2); // Display the game over message
+        ctx.font = "24px times new roman"; // Set a smaller font for additional instructions
+        ctx.fillText("Press 'R' to reset", canvas.width / 2 - 80, canvas.height / 2 + 30); // Display reset instructions
+        paused = true; // Pause the game when game over
+    }
 }
 

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>projects</title>
+    <link rel="icon" type="image/x-icon" href="peon.png">
+</head>
+<body>
+
+<center>
+    <div id = "header"></div>
+
+    <h1 id = "ezTitle">
+        welcome to the projects page! 
+    </h1>
+    <h3>
+        This is a page that holds some of the projects ive made
+    </h3>
+
+    <!-- project 1 -->
+    <div class = "individualProjectExplanation">
+        <h2>Project 1</h2>
+        <p>
+            This is a sandbox with a bouncing ball and some basic physics. <br>
+            You can change some properties of the simulation! <br> 
+            this was where i learned the canvas element and how to use it <br>
+        </p>
+        <a href="project1.html"> Play Project 1!</a>
+    </div>
+
+    <!-- project 2 -->
+    <div class = "individualProjectExplanation">
+        <h2>Project 2</h2>
+        <p>
+            This is a game where you try to move a character around the screen and attack enemies <br>
+            The objective is to survive as long as possible! <br>
+            this was when i first used OOP in the development of a game! <br>
+        </p>
+        <a href="project2.html"> Play Project 2!</a>
+    </div>
+    
+    <!-- project 3 -->
+
+
+    <hr style="width: 75%; border: 1px solid navy;">
+    <script>    
+        // Load the header 
+        fetch("header.html")
+            .then(response => response.text())
+            .then(data => document.getElementById("header").innerHTML = data);
+    </script>
+    
+</center>
+<script src="index.js"></script>
+</body>
+</html>
