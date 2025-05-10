@@ -2,10 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="styles.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>sigmaWebsite</title>
-    <link rel="icon" type="image/x-icon" href="peon.png">
 </head>
 <body>
 
@@ -17,13 +15,11 @@
     </h1>
 
     <p>
-        nothing here yet!
+        nothing here yet! Go to projects!
     </p>
+    <script src="/index.js"></script>
     <script>
-        // Load the header 
-        fetch("header.html")
-            .then(response => response.text())
-            .then(data => document.getElementById("header").innerHTML = data);
+        loadHeader(); // load header + css
     </script>
     
 </center>

@@ -2,10 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="styles.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>projects</title>
-    <link rel="icon" type="image/x-icon" href="peon.png">
 </head>
 <body>
 
@@ -16,7 +14,7 @@
         welcome to the projects page! 
     </h1>
     <h3>
-        This is a page that holds some of the projects ive made
+        This is a page that holds some of the projects I've made
     </h3>
 
     <!-- project 1 -->
@@ -27,7 +25,7 @@
             You can change some properties of the simulation! <br> 
             this was where i learned the canvas element and how to use it <br>
         </p>
-        <a href="project1.html"> Play Project 1!</a>
+        <a href="project1/project1.html"> Play Project 1!</a>
     </div>
 
     <!-- project 2 -->
@@ -38,18 +36,16 @@
             The objective is to survive as long as possible! <br>
             this was when i first used OOP in the development of a game! <br>
         </p>
-        <a href="project2.html"> Play Project 2!</a>
+        <a href="project2/project2.html"> Play Project 2!</a>
     </div>
     
     <!-- project 3 -->
 
 
     <hr style="width: 75%; border: 1px solid navy;">
-    <script>    
-        // Load the header 
-        fetch("header.html")
-            .then(response => response.text())
-            .then(data => document.getElementById("header").innerHTML = data);
+    <script src="/index.js"></script>
+    <script>
+        loadHeader(); // load header + css
     </script>
     
 </center>
