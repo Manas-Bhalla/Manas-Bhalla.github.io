@@ -124,3 +124,19 @@
   
 }
 
+/* project 3 */
+#game-container3 {
+  display: flex; /* Use flexbox for layout */
+  justify-content: flex-start; /* Align items to the left */
+  align-items: flex-start; /* Align items to the top */
+  margin: 0 auto; /* Center the container horizontally */
+  padding: 20px; /* Add padding around the container */
+  width: 90%; /* Ensure the container takes up 90% of the page width */
+}
+
+#gameCanvasProject3 {
+  width: 60%; /* Set the canvas width to 60% of the container */
+  height: auto; /* Maintain the aspect ratio */
+  border: 2px solid navy; /* Add a border to the canvas */
+  background-color: rgb(233, 233, 233); /* Add a background color for visibility */
+}
