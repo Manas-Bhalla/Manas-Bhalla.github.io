@@ -773,9 +773,6 @@ function spawnEnemies(){
     }
 }
 
-calculateWeaponDamage(); // Initial calculation of weapon damage based on the default weapon
-draw(); // Call the draw function
-
 function nextRound() {
     currentRound++; // Increment the current round number
     difficultyMultiplier = 1 + (0.05 * (currentRound-1)); // Update the difficulty multiplier based on the new round number
@@ -812,4 +809,7 @@ function checkGameOver(){
         paused = true; // Pause the game when game over
     }
 }
+
+calculateWeaponDamage(); // Initial calculation of weapon damage based on the default weapon
+draw(); // Call the draw function
 

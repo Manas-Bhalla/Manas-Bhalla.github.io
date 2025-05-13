@@ -4,6 +4,16 @@ const ctx = canvas.getContext("2d");
 let paused = false; // Declare the paused variable
 let debug = false; // Declare the debug variable
 let godmode = false; // Declare the godmode variable 
+let gameScreen = 0; // Declare the game screen variable
+
+/*
+0 = main menu
+1 = level 1
+2 = level 2
+3 = level 3
+4 = endless mode
+-1 = game over
+*/
 
 var gameOver = false;
 
@@ -12,6 +22,18 @@ let mouse = {
     x: 0, // Mouse x position
     y: 0, // Mouse y position
 }
+
+document.addEventListener("keydown", (event) => {
+    switch (event.code) {
+        case "KeyD": // Toggle debug mode
+            debug = !debug; // Toggle the debug variable
+            break;
+        case "Escape": // Toggle pause with esc 
+        case "KeyP": // Toggle pause with P
+            paused = !paused; // Toggle the paused variable
+            break;
+    }
+});
 
 //mouse methods
 canvas.addEventListener("mousemove", (event) => {
@@ -44,6 +66,12 @@ function drawText(){
     ctx.font = "26px times new roman"; // Set the font for player information
     ctx.fillStyle = "blue"; // Set the fill color for player information
 
-    ctx.fillText(`mouse Position: (${Math.floor(mouse.x)}, ${Math.floor(mouse.y)})`, 10, 50); // Display mouse position
+    ctx.fillText(`mouse Position: (${Math.floor(mouse.x)}, ${Math.floor(mouse.y)})`, 10, 25); // mouse position
+    ctx.fillText(`paused (P/esc): ${paused}`, 10, 50); // paused state
+    ctx.fillText(`debug (D): ${debug}`, 10, 75); // debug state
+    ctx.fillText(`game screen: ${gameScreen}`, 10, 100); // game screen
 
 }
+
+// start drawing loop
+draw();

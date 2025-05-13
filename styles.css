@@ -135,7 +135,7 @@
 }
 
 #gameCanvasProject3 {
-  width: 60%; /* Set the canvas width to 60% of the container */
+  width: 70%; /* Set the canvas width to 60% of the container */
   height: auto; /* Maintain the aspect ratio */
   border: 2px solid navy; /* Add a border to the canvas */
   background-color: rgb(233, 233, 233); /* Add a background color for visibility */
