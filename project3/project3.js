@@ -2,7 +2,7 @@ const canvas = document.getElementById("gameCanvasProject3");
 const ctx = canvas.getContext("2d");
 
 let paused = false; // Declare the paused variable
-let debug = false; // Declare the debug variable
+let debug = true; // Declare the debug variable
 let godmode = false; // Declare the godmode variable 
 let gameScreen = 0; // Declare the game screen variable
 
@@ -33,6 +33,28 @@ document.addEventListener("keydown", (event) => {
             paused = !paused; // Toggle the paused variable
             break;
     }
+
+    if (!debug) return; // only look at switch with debug on
+    switch (event.key){
+        case "0":
+            gameScreen = 0;
+            break;
+        case "1":
+            gameScreen = 1;
+            break;
+        case "2":
+            gameScreen = 2;
+            break;
+        case "3":
+            gameScreen = 3;
+            break;
+        case "4":
+            gameScreen = 4;
+            break;
+        case "z":
+            gameScreen = -1;
+        
+    }
 });
 
 //mouse methods
@@ -55,22 +77,69 @@ canvas.addEventListener("click", (event) => {
 
 function draw() {
     
-    ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas before drawing
+    ctx.clearRect(0, 0, canvas.width, canvas.height); // clear the canvas
     drawText(); //draw all the text
 
-    requestAnimationFrame(draw); // Request the next frame for animation
+    requestAnimationFrame(draw); // next frame for animation
+
+    switch (gameScreen) {
+        case 0: //  menu and title screen
+            renderMenu(); // render the menu
+            break;
+        case 1: // level 1
+            renderGameGui(); // render the game GUI
+        case 2: // level 2
+            renderGameGui(); // render the game GUI
+        case 3: // level 3
+            renderGameGui(); // render the game GUI
+        case 4: // endless mode
+            renderGameGui(); // render the game GUI
+            break;
+        case -1: // game over
+            gameOverFunction(); // render the game over screen
+            break;
+    }
+}
+
+
+
+function renderMenu(){
+    //draw buttons for each level
+}
+
+function renderGameGui(){
+    let tileSize = 120;
+    var cornerX = 1280 - 9 * tileSize;
+    var cornerY = 720 - 5 * tileSize;
+
+
+    //draw tiles (first 320 pixels on X axis ignored as well as first 180 on y axis)
+    //use for loops to draw the tiles with alternating light and dark green colors
+    for (var row = 0; row < 5; row++) {
+        for (var column = 0; column < 9; column++) {
+            if (row % 2 == column % 2){ctx.fillStyle = "lightgreen";} // alternate colors
+            else {ctx.fillStyle = "green";} // alternate colors
+            ctx.fillRect(cornerX + column * tileSize, cornerY + row * tileSize, tileSize, tileSize); // draw the tile
+        }
+        
+    }
+}
+
+function gameOverFunction(){
+    //todo later
 }
 
 function drawText(){
 
-    ctx.font = "26px times new roman"; // Set the font for player information
-    ctx.fillStyle = "blue"; // Set the fill color for player information
+    ctx.font = "26px times new roman"; // font for player information
+    ctx.fillStyle = "blue"; // set fill color 
 
+    if(debug){
     ctx.fillText(`mouse Position: (${Math.floor(mouse.x)}, ${Math.floor(mouse.y)})`, 10, 25); // mouse position
     ctx.fillText(`paused (P/esc): ${paused}`, 10, 50); // paused state
     ctx.fillText(`debug (D): ${debug}`, 10, 75); // debug state
     ctx.fillText(`game screen: ${gameScreen}`, 10, 100); // game screen
-
+    }
 }
 
 // start drawing loop
