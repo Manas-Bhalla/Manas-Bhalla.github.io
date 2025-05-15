@@ -15,12 +15,30 @@ let gameScreen = 0; // Declare the game screen variable
 -1 = game over
 */
 
+
+// images
+let napoleonImg = new Image();
+napoleonImg.src = "napoleon.jpg";
+let tungTungTungSahurImg = new Image();
+tungTungTungSahurImg.src = "tungTungTungSahur.jpg";
+let sigmaPatrickBatemanImg = new Image();
+sigmaPatrickBatemanImg.src = "sigmaPatrickBateman.jpg";
+
 var gameOver = false;
 
 //mouse properties
 let mouse = {
     x: 0, // Mouse x position
     y: 0, // Mouse y position
+}
+
+//tile properties
+let hoveredSlotRow = -1; // row of the hovered slot
+
+
+let hoveredTile = {
+    row: -1, // Row of the hovered tile
+    col: -1, // Column of the hovered tile
 }
 
 document.addEventListener("keydown", (event) => {
@@ -65,6 +83,34 @@ canvas.addEventListener("mousemove", (event) => {
 
     mouse.x = (event.clientX - rect.left) * scaleX; // Normalize X to canvas coordinates
     mouse.y = (event.clientY - rect.top) * scaleY; // Normalize Y to canvas coordinates
+
+    // Calculate hovered tile
+    let tileSize = 120;
+    let cornerX = 1280 - 9 * tileSize;
+    let cornerY = 720 - 5 * tileSize;
+    let col = Math.floor((mouse.x - cornerX) / tileSize);
+    let row = Math.floor((mouse.y - cornerY) / tileSize);
+
+    if (
+        col >= 0 && col < 9 &&
+        row >= 0 && row < 5 
+    ) {
+        hoveredTile.row = row;
+        hoveredTile.col = col;
+        hoveredSlotRow = -1; // not hovering a slot
+    } else if (
+        mouse.x >= 0 && mouse.x < cornerX &&
+        mouse.y >= cornerY && mouse.y < cornerY + 5 * tileSize
+    ) {
+        hoveredTile.row = -1;
+        hoveredTile.col = -1;
+        hoveredSlotRow = Math.floor((mouse.y - cornerY) / tileSize);
+    } else {
+        hoveredTile.row = -1;
+        hoveredTile.col = -1;
+        hoveredSlotRow = -1;
+    }
+    
 });
 
 canvas.addEventListener("click", (event) => {
@@ -77,8 +123,9 @@ canvas.addEventListener("click", (event) => {
 
 function draw() {
     
+    
     ctx.clearRect(0, 0, canvas.width, canvas.height); // clear the canvas
-    drawText(); //draw all the text
+    
 
     requestAnimationFrame(draw); // next frame for animation
 
@@ -99,6 +146,9 @@ function draw() {
             gameOverFunction(); // render the game over screen
             break;
     }
+
+
+    drawText(); //draw all the text
 }
 
 
@@ -112,9 +162,6 @@ function renderGameGui(){
     var cornerX = 1280 - 9 * tileSize;
     var cornerY = 720 - 5 * tileSize;
 
-    var TileX = {};
-    var TileY = {};
-
     //draw tiles (first 320 pixels on X axis ignored as well as first 180 on y axis)
     //use for loops to draw the tiles with alternating light and dark green colors
     for (var row = 0; row < 5; row++) {
@@ -122,6 +169,14 @@ function renderGameGui(){
             if (row % 2 == column % 2){ctx.fillStyle = "lightgreen";} // alternate colors
             else {ctx.fillStyle = "green";} // alternate colors
             ctx.fillRect(cornerX + column * tileSize, cornerY + row * tileSize, tileSize, tileSize); // draw the tile
+
+            //hovered tile
+            if (row == hoveredTile.row && column == hoveredTile.col) { // if the tile is hovered...
+                ctx.save(); // save state temporarily
+                ctx.fillStyle = "rgba(255, 255, 0, .7)"; 
+                ctx.fillRect(cornerX + column * tileSize, cornerY + row * tileSize, tileSize, tileSize); // draw the tile
+                ctx.restore(); //come back to the last state
+            }
         }
     }
 
@@ -130,14 +185,46 @@ function renderGameGui(){
     for (var row = 0; row < 5; row++) {
         if(row % 2 == 0){ctx.fillStyle = "gray";}
         else{ctx.fillStyle = "darkgray";}
-        // ctx.fillStyle = "white";
         ctx.fillRect(0, cornerY + row * tileSize, cornerX, tileSize)
+
+        
+        // seperate row from the rest of the tiles:
+        
+        
     }
+
+    //hovered tile
+        //text
+        ctx.save();
+        ctx.font = "32px Times New Roman"; // font for price
+        ctx.fillStyle = "red";
+        ctx.textAlign = "right";
+        ctx.textBaseline = "bottom";
+
+        
+        ctx.drawImage(napoleonImg, 0, cornerY + 0*tileSize, 200, tileSize); // character 1 
+        ctx.fillText("100", 200 - 10, cornerY + 0*tileSize + tileSize - 10);
+        ctx.drawImage(tungTungTungSahurImg, 0, cornerY + 1*tileSize, 200, tileSize); // character 2
+        ctx.fillText("100", 200 - 10, cornerY + 1*tileSize + tileSize - 10);
+        ctx.drawImage(sigmaPatrickBatemanImg, 0, cornerY + 2*tileSize, 200, tileSize); // character 3
+        ctx.fillText("100", 200 - 10, cornerY + 2*tileSize + tileSize - 10);
+        // ctx.drawImage(napoleonImg, 0, cornerY + 3*tileSize, 200, tileSize); // character 4
+        // ctx.fillText("100", 200 - 10, cornerY + 3*tileSize + tileSize - 10);
+        // ctx.drawImage(napoleonImg, 0, cornerY + 4*tileSize, 200, tileSize); // character 5
+        // ctx.fillText("100", 200 - 10, cornerY + 4*tileSize + tileSize - 10);
+        ctx.restore();
+
+        for (var row = 0; row < 5; row++) {
+            if (row === hoveredSlotRow) {
+            ctx.save();
+            ctx.fillStyle = "rgba(255, 255, 0, .3)";
+            ctx.fillRect(0, cornerY + row * tileSize, cornerX, tileSize);
+            ctx.restore();
+        }
+    }        
 }
 
-function gameOverFunction(){
-    //todo later
-}
+
 
 function drawText(){
 
@@ -149,7 +236,12 @@ function drawText(){
     ctx.fillText(`paused (P/esc): ${paused}`, 10, 50); // paused state
     ctx.fillText(`debug (D): ${debug}`, 10, 75); // debug state
     ctx.fillText(`game screen: ${gameScreen}`, 10, 100); // game screen
+    ctx.fillText(`hovered tile: (${hoveredTile.row}, ${hoveredTile.col})`, 10, 125); // hovered tile
     }
+}
+
+function gameOverFunction(){
+    //todo later
 }
 
 // start drawing loop
