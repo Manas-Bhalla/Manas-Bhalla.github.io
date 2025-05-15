@@ -1,3 +1,6 @@
+
+
+
 const canvas = document.getElementById("gameCanvasProject3");
 const ctx = canvas.getContext("2d");
 
@@ -19,8 +22,8 @@ let gameScreen = 0; // Declare the game screen variable
 // images
 let napoleonImg = new Image();
 napoleonImg.src = "napoleon.jpg";
-let tungTungTungSahurImg = new Image();
-tungTungTungSahurImg.src = "tungTungTungSahur.jpg";
+let tttsImg = new Image();
+tttsImg.src = "ttts.jpg";
 let sigmaPatrickBatemanImg = new Image();
 sigmaPatrickBatemanImg.src = "sigmaPatrickBateman.jpg";
 
@@ -204,7 +207,7 @@ function renderGameGui(){
         
         ctx.drawImage(napoleonImg, 0, cornerY + 0*tileSize, 200, tileSize); // character 1 
         ctx.fillText("100", 200 - 10, cornerY + 0*tileSize + tileSize - 10);
-        ctx.drawImage(tungTungTungSahurImg, 0, cornerY + 1*tileSize, 200, tileSize); // character 2
+        ctx.drawImage(tttsImg, 0, cornerY + 1*tileSize, 200, tileSize); // character 2
         ctx.fillText("100", 200 - 10, cornerY + 1*tileSize + tileSize - 10);
         ctx.drawImage(sigmaPatrickBatemanImg, 0, cornerY + 2*tileSize, 200, tileSize); // character 3
         ctx.fillText("100", 200 - 10, cornerY + 2*tileSize + tileSize - 10);
