@@ -112,6 +112,8 @@ function renderGameGui(){
     var cornerX = 1280 - 9 * tileSize;
     var cornerY = 720 - 5 * tileSize;
 
+    var TileX = {};
+    var TileY = {};
 
     //draw tiles (first 320 pixels on X axis ignored as well as first 180 on y axis)
     //use for loops to draw the tiles with alternating light and dark green colors
@@ -121,7 +123,15 @@ function renderGameGui(){
             else {ctx.fillStyle = "green";} // alternate colors
             ctx.fillRect(cornerX + column * tileSize, cornerY + row * tileSize, tileSize, tileSize); // draw the tile
         }
-        
+    }
+
+    //draw the 5 slots for characters
+    //alternate light and dark gray colors
+    for (var row = 0; row < 5; row++) {
+        if(row % 2 == 0){ctx.fillStyle = "gray";}
+        else{ctx.fillStyle = "darkgray";}
+        // ctx.fillStyle = "white";
+        ctx.fillRect(0, cornerY + row * tileSize, cornerX, tileSize)
     }
 }
 
