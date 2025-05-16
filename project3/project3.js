@@ -1,7 +1,8 @@
-
+// @ts-nocheck
 
 
 const canvas = document.getElementById("gameCanvasProject3");
+// @ts-ignore
 const ctx = canvas.getContext("2d");
 
 let paused = false; // Declare the paused variable
@@ -18,6 +19,17 @@ let gameScreen = 0; // Declare the game screen variable
 -1 = game over
 */
 
+let tileSize = 120;
+var cornerX = 1280 - 9 * tileSize;
+var cornerY = 720 - 5 * tileSize;
+
+let tileCharacters = [
+    ["", "", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", "", ""]
+];
 
 // images
 let napoleonImg = new Image();
@@ -49,7 +61,9 @@ document.addEventListener("keydown", (event) => {
         case "KeyD": // Toggle debug mode
             debug = !debug; // Toggle the debug variable
             break;
-        case "Escape": // Toggle pause with esc 
+        case "Escape": // remove held character
+            heldCharacter = "none";
+            break;
         case "KeyP": // Toggle pause with P
             paused = !paused; // Toggle the paused variable
             break;
@@ -94,17 +108,11 @@ canvas.addEventListener("mousemove", (event) => {
     let col = Math.floor((mouse.x - cornerX) / tileSize);
     let row = Math.floor((mouse.y - cornerY) / tileSize);
 
-    if (
-        col >= 0 && col < 9 &&
-        row >= 0 && row < 5 
-    ) {
+    if (col >= 0 && col < 9 && row >= 0 && row < 5 ) {
         hoveredTile.row = row;
         hoveredTile.col = col;
         hoveredSlotRow = -1; // not hovering a slot
-    } else if (
-        mouse.x >= 0 && mouse.x < cornerX &&
-        mouse.y >= cornerY && mouse.y < cornerY + 5 * tileSize
-    ) {
+    } else if (mouse.x >= 0 && mouse.x < cornerX && mouse.y >= cornerY && mouse.y < cornerY + 5 * tileSize) {
         hoveredTile.row = -1;
         hoveredTile.col = -1;
         hoveredSlotRow = Math.floor((mouse.y - cornerY) / tileSize);
@@ -116,13 +124,49 @@ canvas.addEventListener("mousemove", (event) => {
     
 });
 
+// "held" character for dropping
+let heldCharacter = "none";
+
 canvas.addEventListener("click", (event) => {
     const rect = canvas.getBoundingClientRect(); // Get canvas position and size
     const clickX = event.clientX - rect.left; // Calculate X relative to the canvas
     const clickY = event.clientY - rect.top; // Calculate Y relative to the canvas
 
-    console.log(`Mouse clicked at: (${clickX}, ${clickY})`); // Log the click position
+    // console.log(`Mouse clicked at: (${clickX}, ${clickY})`); // Log the click position
+
+    // hold character
+    switch (hoveredSlotRow){
+        // case -1: heldCharacter = "none";
+        // break;
+        case 0: heldCharacter = "napoleon"; //napoleon
+        break;
+        case 1: heldCharacter = "ttts"; // tung tung tung sahur
+        break;
+        case 2: heldCharacter = "sigmaPatrickBateman"; // patrick bateman
+        break;
+    }
+    // console.log(`held character: ${heldCharacter}`); // Log the held character
+
+    //place character
+    if (heldCharacter != "none"){
+        placeCharacter(); // place the character
+    }
+
+
 });
+
+function placeCharacter(){
+    //place held character at tile based on tile
+    tileCharacters[hoveredTile.row][hoveredTile.col] = heldCharacter; // place the character in the tile array
+    console.log(tileCharacters); // Log the tile array
+
+
+
+    heldCharacter = "none"; // remove held character
+
+
+    
+}
 
 function draw() {
     
@@ -137,14 +181,12 @@ function draw() {
             renderMenu(); // render the menu
             break;
         case 1: // level 1
-            renderGameGui(); // render the game GUI
         case 2: // level 2
-            renderGameGui(); // render the game GUI
         case 3: // level 3
-            renderGameGui(); // render the game GUI
         case 4: // endless mode
             renderGameGui(); // render the game GUI
-            break;
+            renderCharacters();
+            break;      
         case -1: // game over
             gameOverFunction(); // render the game over screen
             break;
@@ -154,16 +196,56 @@ function draw() {
     drawText(); //draw all the text
 }
 
+function renderCharacters(){
+    var miniTileSize = 100;
+    var tempImage;
+
+    //draw image of characters in the tile by iterating through the 2d list (tilecharacters)
+    for (var row = 0; row < 5; row++) {
+        for (var column = 0; column < 9; column++) {
+            // set tempImage based on character
+            switch (tileCharacters[row][column]) {
+            case "napoleon":
+                tempImage = napoleonImg;
+                break;
+            case "ttts":
+                tempImage = tttsImg;
+                break;
+            case "sigmaPatrickBateman":
+                tempImage = sigmaPatrickBatemanImg;
+                break;
+            default:
+                tempImage = null;
+            }
+            if (tempImage) {
+            ctx.drawImage(tempImage, 10 + cornerX + column * tileSize, 10 + cornerY + row * tileSize, miniTileSize, miniTileSize);
+            }
+        }
+    }   
+
+    //draw image of whatever user is holding
+    switch (heldCharacter){
+        case "napoleon":
+            ctx.drawImage(napoleonImg, mouse.x - 50, mouse.y - 50, 100, 100); // draw the image
+            break;
+        case "ttts":
+            ctx.drawImage(tttsImg, mouse.x - 50, mouse.y - 50, 100, 100); // draw the image
+            break;
+        case "sigmaPatrickBateman":
+            ctx.drawImage(sigmaPatrickBatemanImg, mouse.x - 50, mouse.y - 50, 100, 100); // draw the image
+            break;
+    }
+}
 
 
 function renderMenu(){
     //draw buttons for each level
 }
 
+
+
 function renderGameGui(){
-    let tileSize = 120;
-    var cornerX = 1280 - 9 * tileSize;
-    var cornerY = 720 - 5 * tileSize;
+    
 
     //draw tiles (first 320 pixels on X axis ignored as well as first 180 on y axis)
     //use for loops to draw the tiles with alternating light and dark green colors
@@ -211,10 +293,15 @@ function renderGameGui(){
         ctx.fillText("100", 200 - 10, cornerY + 1*tileSize + tileSize - 10);
         ctx.drawImage(sigmaPatrickBatemanImg, 0, cornerY + 2*tileSize, 200, tileSize); // character 3
         ctx.fillText("100", 200 - 10, cornerY + 2*tileSize + tileSize - 10);
-        // ctx.drawImage(napoleonImg, 0, cornerY + 3*tileSize, 200, tileSize); // character 4
-        // ctx.fillText("100", 200 - 10, cornerY + 3*tileSize + tileSize - 10);
-        // ctx.drawImage(napoleonImg, 0, cornerY + 4*tileSize, 200, tileSize); // character 5
-        // ctx.fillText("100", 200 - 10, cornerY + 4*tileSize + tileSize - 10);
+
+        if (gameScreen > 1) { //only level 2 and above
+            ctx.drawImage(napoleonImg, 0, cornerY + 3*tileSize, 200, tileSize); // character 4
+            ctx.fillText("100", 200 - 10, cornerY + 3*tileSize + tileSize - 10);
+        }
+        if (gameScreen > 2) { //only level 3 and above
+            ctx.drawImage(napoleonImg, 0, cornerY + 4*tileSize, 200, tileSize); // character 5
+            ctx.fillText("100", 200 - 10, cornerY + 4*tileSize + tileSize - 10);
+        }
         ctx.restore();
 
         for (var row = 0; row < 5; row++) {
@@ -239,7 +326,10 @@ function drawText(){
     ctx.fillText(`paused (P/esc): ${paused}`, 10, 50); // paused state
     ctx.fillText(`debug (D): ${debug}`, 10, 75); // debug state
     ctx.fillText(`game screen: ${gameScreen}`, 10, 100); // game screen
-    ctx.fillText(`hovered tile: (${hoveredTile.row}, ${hoveredTile.col})`, 10, 125); // hovered tile
+    //next column of debugging
+    ctx.fillText(`hovered tile: (${hoveredTile.row}, ${hoveredTile.col})`, 500, 25); // hovered tile
+    ctx.fillText(`hovered slot row: ${hoveredSlotRow}`, 500, 50); // hovered slot row
+    ctx.fillText(`held character: ${heldCharacter}`, 500, 75); // held character
     }
 }
 
