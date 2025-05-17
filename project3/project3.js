@@ -1,8 +1,8 @@
 // @ts-nocheck
 
 
+
 const canvas = document.getElementById("gameCanvasProject3");
-// @ts-ignore
 const ctx = canvas.getContext("2d");
 
 let paused = false; // Declare the paused variable
@@ -19,9 +19,12 @@ let gameScreen = 0; // Declare the game screen variable
 -1 = game over
 */
 
+const buttonWidth = 300;
+const buttonHeight = 80;
+
 let tileSize = 120;
-var cornerX = 1280 - 9 * tileSize;
-var cornerY = 720 - 5 * tileSize;
+let cornerX = 1280 - 9 * tileSize;
+let cornerY = 720 - 5 * tileSize;
 
 let tileCharacters = [
     ["", "", "", "", "", "", "", "", ""],
@@ -31,6 +34,8 @@ let tileCharacters = [
     ["", "", "", "", "", "", "", "", ""]
 ];
 
+
+
 // images
 let napoleonImg = new Image();
 napoleonImg.src = "napoleon.jpg";
@@ -39,7 +44,7 @@ tttsImg.src = "ttts.jpg";
 let sigmaPatrickBatemanImg = new Image();
 sigmaPatrickBatemanImg.src = "sigmaPatrickBateman.jpg";
 
-var gameOver = false;
+let gameOver = false;
 
 //mouse properties
 let mouse = {
@@ -49,7 +54,7 @@ let mouse = {
 
 //tile properties
 let hoveredSlotRow = -1; // row of the hovered slot
-
+let hoveredMenuButton = -1; // row of the hovered menu button
 
 let hoveredTile = {
     row: -1, // Row of the hovered tile
@@ -66,6 +71,10 @@ document.addEventListener("keydown", (event) => {
             break;
         case "KeyP": // Toggle pause with P
             paused = !paused; // Toggle the paused variable
+            break;
+        case "KeyM": //menu
+            gameScreen = 0; // go to menu
+            resetBoard(); // reset board TODO
             break;
     }
 
@@ -121,61 +130,65 @@ canvas.addEventListener("mousemove", (event) => {
         hoveredTile.col = -1;
         hoveredSlotRow = -1;
     }
-    
+
+    //hover effect on menu buttons
+    // Determine which menu button (if any) is hovered
+    if (gameScreen == 0 && mouse.x >= 900 && mouse.x <= 1200) {
+        if (mouse.y >= 200 && mouse.y <= 280) {hoveredMenuButton = 1;}
+        else if (mouse.y >= 320 && mouse.y <= 400) {hoveredMenuButton = 2;}
+        else if (mouse.y >= 440 && mouse.y <= 520) {hoveredMenuButton = 3;}
+        else if (mouse.y >= 560 && mouse.y <= 640) {hoveredMenuButton = 4;}
+        else {hoveredMenuButton = -1;}
+    } else if (gameScreen > 0 && mouse.x >= 950 && mouse.x <= 1250 && mouse.y >= 20 && mouse.y <= 100) {
+        hoveredMenuButton = 0;
+    } else {
+        hoveredMenuButton = -1;
+    }
 });
 
 // "held" character for dropping
 let heldCharacter = "none";
 
-canvas.addEventListener("click", (event) => {
+canvas.onclick = (event) => { 
     const rect = canvas.getBoundingClientRect(); // Get canvas position and size
     const clickX = event.clientX - rect.left; // Calculate X relative to the canvas
     const clickY = event.clientY - rect.top; // Calculate Y relative to the canvas
 
-    // console.log(`Mouse clicked at: (${clickX}, ${clickY})`); // Log the click position
-
     // hold character
     switch (hoveredSlotRow){
-        // case -1: heldCharacter = "none";
-        // break;
-        case 0: heldCharacter = "napoleon"; //napoleon
+        case 0: heldCharacter = "napoleon"; // napoleon
         break;
         case 1: heldCharacter = "ttts"; // tung tung tung sahur
         break;
         case 2: heldCharacter = "sigmaPatrickBateman"; // patrick bateman
         break;
     }
-    // console.log(`held character: ${heldCharacter}`); // Log the held character
 
-    //place character
-    if (heldCharacter != "none"){
-        placeCharacter(); // place the character
+    // place character
+    if (heldCharacter != "none"){ placeCharacter();}
+
+    // menu buttons
+    // menu navigation
+    if (hoveredMenuButton !== -1) {
+        gameScreen = hoveredMenuButton;
+        resetBoard();
     }
-
-
-});
+};
 
 function placeCharacter(){
     //place held character at tile based on tile
     tileCharacters[hoveredTile.row][hoveredTile.col] = heldCharacter; // place the character in the tile array
-    console.log(tileCharacters); // Log the tile array
-
-
-
     heldCharacter = "none"; // remove held character
-
-
-    
 }
 
 function draw() {
     
     
     ctx.clearRect(0, 0, canvas.width, canvas.height); // clear the canvas
-    
-
     requestAnimationFrame(draw); // next frame for animation
 
+    
+    //deciding what to do based on the game screen
     switch (gameScreen) {
         case 0: //  menu and title screen
             renderMenu(); // render the menu
@@ -192,17 +205,16 @@ function draw() {
             break;
     }
 
-
     drawText(); //draw all the text
 }
 
 function renderCharacters(){
-    var miniTileSize = 100;
-    var tempImage;
+    let miniTileSize = 100;
+    let tempImage;
 
     //draw image of characters in the tile by iterating through the 2d list (tilecharacters)
-    for (var row = 0; row < 5; row++) {
-        for (var column = 0; column < 9; column++) {
+    for (let row = 0; row < 5; row++) {
+        for (let column = 0; column < 9; column++) {
             // set tempImage based on character
             switch (tileCharacters[row][column]) {
             case "napoleon":
@@ -239,7 +251,56 @@ function renderCharacters(){
 
 
 function renderMenu(){
+    
+    const startX = 900; // starting x position for buttons
+    const buttonLabels = ["Level 1", "Level 2", "Level 3", "Endless Mode"];
+
+
+
+    //draw title
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = "65px Times New Roman";
+    ctx.fillStyle = "rgb(62, 64, 163)";
+    ctx.fillText("Brainrot Tower Defense!", canvas.width / 2 - 200, 150); // title text
+
+    //draw some images
+    ctx.drawImage(napoleonImg, 50, 200, 240, 160); 
+    ctx.drawImage(tttsImg, 50, 360, 240, 160); 
+    ctx.drawImage(sigmaPatrickBatemanImg, 50, 520, 240, 160); 
+    
+
     //draw buttons for each level
+    ctx.textAlign = "left";
+
+    ctx.fillText("Select level", startX, 150); // selecting level text
+    ctx.save();
+    ctx.font = "48px Times New Roman";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    // properties
+    
+
+    ctx.fillStyle = "rgb(62, 64, 163)";
+    
+
+    for (let i = 0; i < 4; i++) {
+        let y = 200 + i * (buttonHeight + 40);
+        ctx.fillStyle = "rgb(62, 64, 163)";
+        ctx.fillRect(startX, y, buttonWidth, buttonHeight);
+        //hover effect - after button but before text
+        if (hoveredMenuButton == i + 1) { // if the button is hovered...
+            ctx.save(); // save state temporarily
+            ctx.fillStyle = "rgba(255, 255, 0, .5)"; 
+            ctx.fillRect(startX, y, buttonWidth, buttonHeight); // draw the button
+            ctx.restore(); //come back to the last state
+        }
+        //text
+        ctx.fillStyle = "#fff";
+        ctx.fillText(buttonLabels[i], startX + buttonWidth / 2, y + buttonHeight / 2);
+    }
+
+    ctx.restore();
 }
 
 
@@ -249,8 +310,8 @@ function renderGameGui(){
 
     //draw tiles (first 320 pixels on X axis ignored as well as first 180 on y axis)
     //use for loops to draw the tiles with alternating light and dark green colors
-    for (var row = 0; row < 5; row++) {
-        for (var column = 0; column < 9; column++) {
+    for (let row = 0; row < 5; row++) {
+        for (let column = 0; column < 9; column++) {
             if (row % 2 == column % 2){ctx.fillStyle = "lightgreen";} // alternate colors
             else {ctx.fillStyle = "green";} // alternate colors
             ctx.fillRect(cornerX + column * tileSize, cornerY + row * tileSize, tileSize, tileSize); // draw the tile
@@ -267,56 +328,85 @@ function renderGameGui(){
 
     //draw the 5 slots for characters
     //alternate light and dark gray colors
-    for (var row = 0; row < 5; row++) {
+    for (let row = 0; row < 5; row++) {
         if(row % 2 == 0){ctx.fillStyle = "gray";}
         else{ctx.fillStyle = "darkgray";}
         ctx.fillRect(0, cornerY + row * tileSize, cornerX, tileSize)
-
-        
-        // seperate row from the rest of the tiles:
-        
-        
     }
 
     //hovered tile
-        //text
-        ctx.save();
-        ctx.font = "32px Times New Roman"; // font for price
-        ctx.fillStyle = "red";
-        ctx.textAlign = "right";
-        ctx.textBaseline = "bottom";
+    //text
+    ctx.save();
+    ctx.font = "32px Times New Roman"; // font for price
+    ctx.fillStyle = "red";
+    ctx.textAlign = "right";
+    ctx.textBaseline = "bottom";
 
         
-        ctx.drawImage(napoleonImg, 0, cornerY + 0*tileSize, 200, tileSize); // character 1 
-        ctx.fillText("100", 200 - 10, cornerY + 0*tileSize + tileSize - 10);
-        ctx.drawImage(tttsImg, 0, cornerY + 1*tileSize, 200, tileSize); // character 2
-        ctx.fillText("100", 200 - 10, cornerY + 1*tileSize + tileSize - 10);
-        ctx.drawImage(sigmaPatrickBatemanImg, 0, cornerY + 2*tileSize, 200, tileSize); // character 3
-        ctx.fillText("100", 200 - 10, cornerY + 2*tileSize + tileSize - 10);
+    ctx.drawImage(napoleonImg, 0, cornerY + 0*tileSize, 200, tileSize); // character 1 
+    ctx.fillText("100", 200 - 10, cornerY + 0*tileSize + tileSize - 10);
+    ctx.drawImage(tttsImg, 0, cornerY + 1*tileSize, 200, tileSize); // character 2
+    ctx.fillText("100", 200 - 10, cornerY + 1*tileSize + tileSize - 10);
+    ctx.drawImage(sigmaPatrickBatemanImg, 0, cornerY + 2*tileSize, 200, tileSize); // character 3
+    ctx.fillText("100", 200 - 10, cornerY + 2*tileSize + tileSize - 10);
 
-        if (gameScreen > 1) { //only level 2 and above
-            ctx.drawImage(napoleonImg, 0, cornerY + 3*tileSize, 200, tileSize); // character 4
-            ctx.fillText("100", 200 - 10, cornerY + 3*tileSize + tileSize - 10);
-        }
-        if (gameScreen > 2) { //only level 3 and above
-            ctx.drawImage(napoleonImg, 0, cornerY + 4*tileSize, 200, tileSize); // character 5
-            ctx.fillText("100", 200 - 10, cornerY + 4*tileSize + tileSize - 10);
-        }
+    if (gameScreen > 1) { //only level 2 and above
+        ctx.drawImage(napoleonImg, 0, cornerY + 3*tileSize, 200, tileSize); // character 4
+        ctx.fillText("100", 200 - 10, cornerY + 3*tileSize + tileSize - 10);
+    }
+    if (gameScreen > 2) { //only level 3 and above
+        ctx.drawImage(napoleonImg, 0, cornerY + 4*tileSize, 200, tileSize); // character 5
+        ctx.fillText("100", 200 - 10, cornerY + 4*tileSize + tileSize - 10);
+    }
+    ctx.restore();
+
+    for (let row = 0; row < 5; row++) {
+        if (row === hoveredSlotRow) {
+        ctx.save();
+        ctx.fillStyle = "rgba(255, 255, 0, .3)";
+        ctx.fillRect(0, cornerY + row * tileSize, cornerX, tileSize);
         ctx.restore();
-
-        for (var row = 0; row < 5; row++) {
-            if (row === hoveredSlotRow) {
-            ctx.save();
-            ctx.fillStyle = "rgba(255, 255, 0, .3)";
-            ctx.fillRect(0, cornerY + row * tileSize, cornerX, tileSize);
-            ctx.restore();
         }
     }        
+
+    //draw the button to go back to the menu
+    ctx.save();
+    ctx.fillStyle = "rgb(62, 64, 163)";
+    ctx.fillRect(950, 20, buttonWidth, buttonHeight); //button
+    //hover effect - after button but before text
+    if (hoveredMenuButton == 0) { // if the button is hovered...
+        ctx.save(); // save state temporarily
+        ctx.fillStyle = "rgba(255, 255, 0, .5)";
+        ctx.fillRect(950, 20, buttonWidth, buttonHeight); // draw the button
+        ctx.restore(); //come back to the last state
+    }
+    ctx.fillStyle = "#fff";
+    ctx.font = "48px Times New Roman";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("Menu", 1250 - buttonWidth / 2, 20 + buttonHeight / 2);
+    ctx.restore(); //come back to the last state
 }
 
+function resetBoard(){
+    // set the lists of towers to empty
+    tileCharacters = [
+    ["", "", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", "", ""]
+    ];
 
+    // set the lists of enemies to empty TODO
+    // set the lists of projectiles to empty TODO
+}
 
 function drawText(){
+
+    //align stuff
+    ctx.textAlign = "left"; // align text to left
+    
 
     ctx.font = "26px times new roman"; // font for player information
     ctx.fillStyle = "blue"; // set fill color 
@@ -330,11 +420,27 @@ function drawText(){
     ctx.fillText(`hovered tile: (${hoveredTile.row}, ${hoveredTile.col})`, 500, 25); // hovered tile
     ctx.fillText(`hovered slot row: ${hoveredSlotRow}`, 500, 50); // hovered slot row
     ctx.fillText(`held character: ${heldCharacter}`, 500, 75); // held character
+    ctx.fillText(`hovered menu button: ${hoveredMenuButton}`, 500, 100); // hovered menu button
+    }
+
+    if (paused){
+        //OVERLAY
+        ctx.save(); // save state temporarily
+        ctx.fillStyle = "rgba(255, 255, 255, .5)"; // overlay
+        ctx.fillRect(0, 0, canvas.width, canvas.height); // draw the rectangle
+        ctx.restore();
+
+        //PAUSED TEXT
+        ctx.save(); // save state temporarily
+        ctx.font = "75px times new roman"; // font for paused text
+        ctx.textAlign = "center"; // align text to center
+        ctx.fillText("PAUSED", canvas.width / 2 - 50, canvas.height / 2); // paused text
+        ctx.restore(); //come back 
     }
 }
 
 function gameOverFunction(){
-    //todo later
+    //TODO later
 }
 
 // start drawing loop
