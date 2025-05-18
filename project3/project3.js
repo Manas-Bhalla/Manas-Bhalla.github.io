@@ -1,7 +1,5 @@
 // @ts-nocheck
 
-
-
 const canvas = document.getElementById("gameCanvasProject3");
 const ctx = canvas.getContext("2d");
 
@@ -34,7 +32,13 @@ let tileCharacters = [
     ["", "", "", "", "", "", "", "", ""]
 ];
 
-
+let towerPrices = [
+    100, // price for character 1
+    200, // price for character 2
+    300, // price for character 3
+    400, // price for character 4
+    500  // price for character 5
+];
 
 // images
 let napoleonImg = new Image();
@@ -56,10 +60,17 @@ let mouse = {
 let hoveredSlotRow = -1; // row of the hovered slot
 let hoveredMenuButton = -1; // row of the hovered menu button
 
+//hovered tile properties
 let hoveredTile = {
     row: -1, // Row of the hovered tile
     col: -1, // Column of the hovered tile
 }
+
+// "held" character for dropping
+let heldCharacter = "none";
+
+// random constants
+const gameBlue = "rgb(62, 64, 163)"; // this is used frequently
 
 document.addEventListener("keydown", (event) => {
     switch (event.code) {
@@ -145,9 +156,6 @@ canvas.addEventListener("mousemove", (event) => {
         hoveredMenuButton = -1;
     }
 });
-
-// "held" character for dropping
-let heldCharacter = "none";
 
 canvas.onclick = (event) => { 
     const rect = canvas.getBoundingClientRect(); // Get canvas position and size
@@ -261,7 +269,7 @@ function renderMenu(){
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.font = "65px Times New Roman";
-    ctx.fillStyle = "rgb(62, 64, 163)";
+    ctx.fillStyle = gameBlue;
     ctx.fillText("Brainrot Tower Defense!", canvas.width / 2 - 200, 150); // title text
 
     //draw some images
@@ -281,12 +289,12 @@ function renderMenu(){
     // properties
     
 
-    ctx.fillStyle = "rgb(62, 64, 163)";
+    ctx.fillStyle = gameBlue;
     
 
     for (let i = 0; i < 4; i++) {
         let y = 200 + i * (buttonHeight + 40);
-        ctx.fillStyle = "rgb(62, 64, 163)";
+        ctx.fillStyle = gameBlue;
         ctx.fillRect(startX, y, buttonWidth, buttonHeight);
         //hover effect - after button but before text
         if (hoveredMenuButton == i + 1) { // if the button is hovered...
@@ -334,58 +342,59 @@ function renderGameGui(){
         ctx.fillRect(0, cornerY + row * tileSize, cornerX, tileSize)
     }
 
-    //hovered tile
-    //text
-    ctx.save();
-    ctx.font = "32px Times New Roman"; // font for price
-    ctx.fillStyle = "red";
-    ctx.textAlign = "right";
-    ctx.textBaseline = "bottom";
+    
+    
 
         
     ctx.drawImage(napoleonImg, 0, cornerY + 0*tileSize, 200, tileSize); // character 1 
-    ctx.fillText("100", 200 - 10, cornerY + 0*tileSize + tileSize - 10);
     ctx.drawImage(tttsImg, 0, cornerY + 1*tileSize, 200, tileSize); // character 2
-    ctx.fillText("100", 200 - 10, cornerY + 1*tileSize + tileSize - 10);
     ctx.drawImage(sigmaPatrickBatemanImg, 0, cornerY + 2*tileSize, 200, tileSize); // character 3
-    ctx.fillText("100", 200 - 10, cornerY + 2*tileSize + tileSize - 10);
-
-    if (gameScreen > 1) { //only level 2 and above
-        ctx.drawImage(napoleonImg, 0, cornerY + 3*tileSize, 200, tileSize); // character 4
-        ctx.fillText("100", 200 - 10, cornerY + 3*tileSize + tileSize - 10);
-    }
-    if (gameScreen > 2) { //only level 3 and above
-        ctx.drawImage(napoleonImg, 0, cornerY + 4*tileSize, 200, tileSize); // character 5
-        ctx.fillText("100", 200 - 10, cornerY + 4*tileSize + tileSize - 10);
-    }
-    ctx.restore();
-
-    for (let row = 0; row < 5; row++) {
-        if (row === hoveredSlotRow) {
+    //conditional images
+    if (gameScreen > 1) { ctx.drawImage(napoleonImg, 0, cornerY + 3*tileSize, 200, tileSize); }
+    if (gameScreen > 2) { ctx.drawImage(napoleonImg, 0, cornerY + 4*tileSize, 200, tileSize); }
+    //hovered tile
+    if (hoveredSlotRow !== -1) {
         ctx.save();
         ctx.fillStyle = "rgba(255, 255, 0, .3)";
-        ctx.fillRect(0, cornerY + row * tileSize, cornerX, tileSize);
+        ctx.fillRect(0, cornerY + hoveredSlotRow * tileSize, cornerX, tileSize); //cornerX used as width here
         ctx.restore();
-        }
-    }        
+    }
 
+    
+    //text for tower prices
+    ctx.save();
+    ctx.font = "32px Times New Roman"; // font for price
+    ctx.fillStyle = "white";
+    ctx.textAlign = "right";
+    ctx.textBaseline = "bottom";     
+    for (let i = 0; i < 5; i++) { //draw prices and the box below them
+        if (i - 2 < gameScreen) {
+            ctx.save();
+            ctx.fillStyle = gameBlue;
+            ctx.fillRect(145, 85 + cornerY + i * tileSize, 55, 35);
+            ctx.restore();
+            ctx.fillText(towerPrices[i], 200 - 3, 10 + cornerY + i * tileSize + tileSize - 10);
+        }
+    }
+
+    ctx.restore(); //come back to the last state
+    
     //draw the button to go back to the menu
     ctx.save();
-    ctx.fillStyle = "rgb(62, 64, 163)";
+    ctx.fillStyle = gameBlue;
     ctx.fillRect(950, 20, buttonWidth, buttonHeight); //button
-    //hover effect - after button but before text
     if (hoveredMenuButton == 0) { // if the button is hovered...
-        ctx.save(); // save state temporarily
+        ctx.save(); 
         ctx.fillStyle = "rgba(255, 255, 0, .5)";
-        ctx.fillRect(950, 20, buttonWidth, buttonHeight); // draw the button
-        ctx.restore(); //come back to the last state
-    }
+        ctx.fillRect(950, 20, buttonWidth, buttonHeight); 
+        ctx.restore(); 
+    } //text
     ctx.fillStyle = "#fff";
     ctx.font = "48px Times New Roman";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText("Menu", 1250 - buttonWidth / 2, 20 + buttonHeight / 2);
-    ctx.restore(); //come back to the last state
+    ctx.restore(); 
 }
 
 function resetBoard(){
@@ -412,15 +421,15 @@ function drawText(){
     ctx.fillStyle = "blue"; // set fill color 
 
     if(debug){
-    ctx.fillText(`mouse Position: (${Math.floor(mouse.x)}, ${Math.floor(mouse.y)})`, 10, 25); // mouse position
-    ctx.fillText(`paused (P/esc): ${paused}`, 10, 50); // paused state
-    ctx.fillText(`debug (D): ${debug}`, 10, 75); // debug state
-    ctx.fillText(`game screen: ${gameScreen}`, 10, 100); // game screen
+    ctx.fillText("mouse Position: (" + Math.floor(mouse.x) + ", " + Math.floor(mouse.y) + ")", 10, 25); // mouse position
+    ctx.fillText("paused (P/esc): " + paused, 10, 50); // paused state
+    ctx.fillText("debug (D): " + debug, 10, 75); // debug state
+    ctx.fillText("game screen: " + gameScreen, 10, 100); // game screen
     //next column of debugging
-    ctx.fillText(`hovered tile: (${hoveredTile.row}, ${hoveredTile.col})`, 500, 25); // hovered tile
-    ctx.fillText(`hovered slot row: ${hoveredSlotRow}`, 500, 50); // hovered slot row
-    ctx.fillText(`held character: ${heldCharacter}`, 500, 75); // held character
-    ctx.fillText(`hovered menu button: ${hoveredMenuButton}`, 500, 100); // hovered menu button
+    ctx.fillText("hovered tile: (" + hoveredTile.row + ", " + hoveredTile.col + ")", 500, 25); // hovered tile
+    ctx.fillText("hovered slot row: " + hoveredSlotRow, 500, 50); // hovered slot row
+    ctx.fillText("held character: " + heldCharacter, 500, 75); // held character
+    ctx.fillText("hovered menu button: " + hoveredMenuButton, 500, 100); // hovered menu button
     }
 
     if (paused){
