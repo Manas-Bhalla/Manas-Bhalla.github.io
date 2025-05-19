@@ -32,21 +32,62 @@ let tileCharacters = [
     ["", "", "", "", "", "", "", "", ""]
 ];
 
+class napoleon {
+    // shared by all napoleon objects
+    static image = new Image(); // Static property for image object
+    static price = 100; // Static property for price
+
+}
+
+class ttts {
+    // shared by all ttts objects
+    static image = new Image(); // Static property for image
+    static price = 200; // Static property for price
+}
+
+class bateman {
+    // shared by all bateman objects
+    static image = new Image(); // Static property for image
+    static price = 300; // Static property for price
+}
+
+class johnPork {
+    // shared by all johnPork objects
+    static image = new Image(); // Static property for image
+    static price = 400; // Static property for price
+}
+
+// tower 5 class
+
+//list to hold all the towers
+
 let towerPrices = [
-    100, // price for character 1
-    200, // price for character 2
-    300, // price for character 3
-    400, // price for character 4
-    500  // price for character 5
+    napoleon.price, // price for character 1
+    ttts.price,     // price for character 2
+    bateman.price,  // price for character 3
+    johnPork.price, // price for character 4
+    500             // price for character 5 TODO 
 ];
 
 // images
-let napoleonImg = new Image();
-napoleonImg.src = "napoleon.jpg";
-let tttsImg = new Image();
-tttsImg.src = "ttts.jpg";
-let sigmaPatrickBatemanImg = new Image();
-sigmaPatrickBatemanImg.src = "sigmaPatrickBateman.jpg";
+// let napoleonImg = new Image();
+// napoleonImg.src = "napoleon.jpg";
+// let tttsImg = new Image();
+// tttsImg.src = "ttts.jpg";
+// let batemanImg = new Image();
+// batemanImg.src = "bateman.jpg";
+// let johnPorkImg = new Image();
+// johnPorkImg.src = "johnPork.jpg";
+
+//new class based images
+napoleon.image.src = "napoleon.jpg";
+ttts.image.src = "ttts.jpg";
+bateman.image.src = "bateman.jpg";
+johnPork.image.src = "johnPork.jpg";
+// tower 5 image
+
+//enemy images TODO
+
 
 let gameOver = false;
 
@@ -168,8 +209,12 @@ canvas.onclick = (event) => {
         break;
         case 1: heldCharacter = "ttts"; // tung tung tung sahur
         break;
-        case 2: heldCharacter = "sigmaPatrickBateman"; // patrick bateman
+        case 2: heldCharacter = "bateman"; // patrick bateman
         break;
+        case 3: heldCharacter = "johnPork"; // john pork 
+        break;
+        // case 4: heldCharacter = 
+        // break;
     }
 
     // place character
@@ -206,7 +251,8 @@ function draw() {
         case 3: // level 3
         case 4: // endless mode
             renderGameGui(); // render the game GUI
-            renderCharacters();
+            renderCharacters(); // render the towers on the tiles
+            renderHeldCharacter(); // render the held character
             break;      
         case -1: // game over
             gameOverFunction(); // render the game over screen
@@ -226,13 +272,16 @@ function renderCharacters(){
             // set tempImage based on character
             switch (tileCharacters[row][column]) {
             case "napoleon":
-                tempImage = napoleonImg;
+                tempImage = napoleon.image;
                 break;
             case "ttts":
-                tempImage = tttsImg;
+                tempImage = ttts.image;
                 break;
-            case "sigmaPatrickBateman":
-                tempImage = sigmaPatrickBatemanImg;
+            case "bateman":
+                tempImage = bateman.image;
+                break;
+            case "johnPork":
+                tempImage = johnPork.image;
                 break;
             default:
                 tempImage = null;
@@ -244,19 +293,33 @@ function renderCharacters(){
     }   
 
     //draw image of whatever user is holding
+    // set tempImage based on character
     switch (heldCharacter){
         case "napoleon":
-            ctx.drawImage(napoleonImg, mouse.x - 50, mouse.y - 50, 100, 100); // draw the image
+            tempImage = napoleon.image;
             break;
         case "ttts":
-            ctx.drawImage(tttsImg, mouse.x - 50, mouse.y - 50, 100, 100); // draw the image
+            tempImage = ttts.image;
             break;
-        case "sigmaPatrickBateman":
-            ctx.drawImage(sigmaPatrickBatemanImg, mouse.x - 50, mouse.y - 50, 100, 100); // draw the image
+        case "bateman":
+            tempImage = bateman.image;
             break;
+        case "johnPork":
+            tempImage = johnPork.image;
+            break;
+        default:
+            tempImage = null;
     }
+    if (heldCharacter != "none" && tempImage != null) {
+        ctx.drawImage(tempImage, mouse.x - 50, mouse.y - 50, miniTileSize, miniTileSize);
+    }
+
+    
 }
 
+function renderHeldCharacter(){
+
+}
 
 function renderMenu(){
     
@@ -273,9 +336,9 @@ function renderMenu(){
     ctx.fillText("Brainrot Tower Defense!", canvas.width / 2 - 200, 150); // title text
 
     //draw some images
-    ctx.drawImage(napoleonImg, 50, 200, 240, 160); 
-    ctx.drawImage(tttsImg, 50, 360, 240, 160); 
-    ctx.drawImage(sigmaPatrickBatemanImg, 50, 520, 240, 160); 
+    ctx.drawImage(napoleon.image, 50, 200, 240, 160); 
+    ctx.drawImage(ttts.image, 50, 360, 240, 160); 
+    ctx.drawImage(bateman.image, 50, 520, 240, 160); 
     
 
     //draw buttons for each level
@@ -327,7 +390,7 @@ function renderGameGui(){
             //hovered tile
             if (row == hoveredTile.row && column == hoveredTile.col) { // if the tile is hovered...
                 ctx.save(); // save state temporarily
-                ctx.fillStyle = "rgba(255, 255, 0, .7)"; 
+                ctx.fillStyle = "rgba(255, 255, 0, .75)"; 
                 ctx.fillRect(cornerX + column * tileSize, cornerY + row * tileSize, tileSize, tileSize); // draw the tile
                 ctx.restore(); //come back to the last state
             }
@@ -342,16 +405,14 @@ function renderGameGui(){
         ctx.fillRect(0, cornerY + row * tileSize, cornerX, tileSize)
     }
 
-    
-    
-
-        
-    ctx.drawImage(napoleonImg, 0, cornerY + 0*tileSize, 200, tileSize); // character 1 
-    ctx.drawImage(tttsImg, 0, cornerY + 1*tileSize, 200, tileSize); // character 2
-    ctx.drawImage(sigmaPatrickBatemanImg, 0, cornerY + 2*tileSize, 200, tileSize); // character 3
+    //draw the images of the characters in the slots
+    ctx.drawImage(napoleon.image, 0, cornerY + 0*tileSize, 200, tileSize); 
+    ctx.drawImage(ttts.image, 0, cornerY + 1*tileSize, 200, tileSize); 
+    ctx.drawImage(bateman.image, 0, cornerY + 2*tileSize, 200, tileSize); 
     //conditional images
-    if (gameScreen > 1) { ctx.drawImage(napoleonImg, 0, cornerY + 3*tileSize, 200, tileSize); }
-    if (gameScreen > 2) { ctx.drawImage(napoleonImg, 0, cornerY + 4*tileSize, 200, tileSize); }
+    if (gameScreen > 1) { ctx.drawImage(johnPork.image, 0, cornerY + 3*tileSize, 200, tileSize);}
+    if (gameScreen > 2) { ctx.drawImage(napoleon.image, 0, cornerY + 4*tileSize, 200, tileSize);}
+
     //hovered tile
     if (hoveredSlotRow !== -1) {
         ctx.save();
