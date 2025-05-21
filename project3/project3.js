@@ -3,10 +3,12 @@
 const canvas = document.getElementById("gameCanvasProject3");
 const ctx = canvas.getContext("2d");
 
+let gameRunning = false; // Declare the gameRunning variable
 let paused = false; // Declare the paused variable
 let debug = true; // Declare the debug variable
 let godmode = false; // Declare the godmode variable 
 let gameScreen = 0; // Declare the game screen variable
+let money = 0;
 
 /*
 0 = main menu
@@ -34,60 +36,63 @@ let tileCharacters = [
 
 class napoleon {
     // shared by all napoleon objects
-    static image = new Image(); // Static property for image object
-    static price = 100; // Static property for price
+    static image = new Image(); 
+    static price = 100; 
 
 }
 
 class ttts {
     // shared by all ttts objects
-    static image = new Image(); // Static property for image
-    static price = 200; // Static property for price
+    static image = new Image(); 
+    static price = 200; 
 }
 
 class bateman {
     // shared by all bateman objects
-    static image = new Image(); // Static property for image
-    static price = 300; // Static property for price
+    static image = new Image(); 
+    static price = 300; 
 }
 
 class johnPork {
     // shared by all johnPork objects
-    static image = new Image(); // Static property for image
-    static price = 400; // Static property for price
+    static image = new Image(); 
+    static price = 400; 
 }
 
-// tower 5 class
+class skibidi {
+    // shared by all skibidi objects
+    static image = new Image(); 
+    static price = 500; 
+}
 
 //list to hold all the towers
 
 let towerPrices = [
-    napoleon.price, // price for character 1
-    ttts.price,     // price for character 2
-    bateman.price,  // price for character 3
-    johnPork.price, // price for character 4
-    500             // price for character 5 TODO 
+    napoleon.price, // price for 1
+    ttts.price,     // price for 2
+    bateman.price,  // price for 3
+    johnPork.price, // price for 4
+    skibidi.price   // price for 5
 ];
 
-// images
-// let napoleonImg = new Image();
-// napoleonImg.src = "napoleon.jpg";
-// let tttsImg = new Image();
-// tttsImg.src = "ttts.jpg";
-// let batemanImg = new Image();
-// batemanImg.src = "bateman.jpg";
-// let johnPorkImg = new Image();
-// johnPorkImg.src = "johnPork.jpg";
+//enemies
+
+class timCheese{
+    // shared by all timCheese objects
+    static image = new Image(); 
+}
+
+
 
 //new class based images
 napoleon.image.src = "napoleon.jpg";
 ttts.image.src = "ttts.jpg";
 bateman.image.src = "bateman.jpg";
 johnPork.image.src = "johnPork.jpg";
-// tower 5 image
+skibidi.image.src = "skibidi.jpg"; 
 
 //enemy images TODO
-
+timCheese.image.src = "timCheese.jpg"; 
 
 let gameOver = false;
 
@@ -128,6 +133,10 @@ document.addEventListener("keydown", (event) => {
             gameScreen = 0; // go to menu
             resetBoard(); // reset board TODO
             break;
+        case "keyB": //begin game
+            beginGame();
+            gameRunning = true;
+
     }
 
     if (!debug) return; // only look at switch with debug on
@@ -213,8 +222,8 @@ canvas.onclick = (event) => {
         break;
         case 3: heldCharacter = "johnPork"; // john pork 
         break;
-        // case 4: heldCharacter = 
-        // break;
+        case 4: heldCharacter = "skibidi"; 
+        break;
     }
 
     // place character
@@ -253,6 +262,7 @@ function draw() {
             renderGameGui(); // render the game GUI
             renderCharacters(); // render the towers on the tiles
             renderHeldCharacter(); // render the held character
+            handleTime();
             break;      
         case -1: // game over
             gameOverFunction(); // render the game over screen
@@ -283,6 +293,9 @@ function renderCharacters(){
             case "johnPork":
                 tempImage = johnPork.image;
                 break;
+            case "skibidi":
+                tempImage = skibidi.image;
+                break;
             default:
                 tempImage = null;
             }
@@ -307,6 +320,9 @@ function renderCharacters(){
         case "johnPork":
             tempImage = johnPork.image;
             break;
+        case "skibidi":
+            tempImage = skibidi.image;
+            break;
         default:
             tempImage = null;
     }
@@ -322,11 +338,8 @@ function renderHeldCharacter(){
 }
 
 function renderMenu(){
-    
     const startX = 900; // starting x position for buttons
     const buttonLabels = ["Level 1", "Level 2", "Level 3", "Endless Mode"];
-
-
 
     //draw title
     ctx.textAlign = "center";
@@ -336,10 +349,11 @@ function renderMenu(){
     ctx.fillText("Brainrot Tower Defense!", canvas.width / 2 - 200, 150); // title text
 
     //draw some images
-    ctx.drawImage(napoleon.image, 50, 200, 240, 160); 
-    ctx.drawImage(ttts.image, 50, 360, 240, 160); 
-    ctx.drawImage(bateman.image, 50, 520, 240, 160); 
-    
+    ctx.drawImage(napoleon.image, 40, 200, 360, 240); 
+    ctx.drawImage(ttts.image, 400, 200, 240, 240); 
+    ctx.drawImage(skibidi.image, 340, 440, 360, 240);
+    ctx.drawImage(bateman.image, 40, 440, 360, 240); 
+    ctx.drawImage(timCheese.image, 640, 200, 240, 480);
 
     //draw buttons for each level
     ctx.textAlign = "left";
@@ -374,10 +388,23 @@ function renderMenu(){
     ctx.restore();
 }
 
+function handleTime(){
+    
+    // make sure we are on the same seclnd
+    if (!handleTime.lastTime) {handleTime.lastTime = Date.now();}
 
+    if (Date.now() - handleTime.lastTime >= 1000) { //over one tenth of a second
+        money = money + 10;
+        handleTime.lastTime = Date.now();
+    }
+}
 
 function renderGameGui(){
-    
+    ctx.save();
+    ctx.font = "44px times new roman"; // font for player information
+    ctx.fillStyle = gameBlue;
+    ctx.fillText("$: " + money, 10, 30); // money text
+    ctx.restore();
 
     //draw tiles (first 320 pixels on X axis ignored as well as first 180 on y axis)
     //use for loops to draw the tiles with alternating light and dark green colors
@@ -411,7 +438,7 @@ function renderGameGui(){
     ctx.drawImage(bateman.image, 0, cornerY + 2*tileSize, 200, tileSize); 
     //conditional images
     if (gameScreen > 1) { ctx.drawImage(johnPork.image, 0, cornerY + 3*tileSize, 200, tileSize);}
-    if (gameScreen > 2) { ctx.drawImage(napoleon.image, 0, cornerY + 4*tileSize, 200, tileSize);}
+    if (gameScreen > 2) { ctx.drawImage(skibidi.image, 0, cornerY + 4*tileSize, 200, tileSize);}
 
     //hovered tile
     if (hoveredSlotRow !== -1) {
@@ -468,6 +495,8 @@ function resetBoard(){
     ["", "", "", "", "", "", "", "", ""]
     ];
 
+    money = 0; // reset money
+    gameRunning = false; // reset game running state
     // set the lists of enemies to empty TODO
     // set the lists of projectiles to empty TODO
 }
@@ -476,16 +505,14 @@ function drawText(){
 
     //align stuff
     ctx.textAlign = "left"; // align text to left
+    ctx.font = "26px times new roman"; // font for debug stuff
+    ctx.fillStyle = "blue"; // set fill color
     
-
-    ctx.font = "26px times new roman"; // font for player information
-    ctx.fillStyle = "blue"; // set fill color 
-
     if(debug){
-    ctx.fillText("mouse Position: (" + Math.floor(mouse.x) + ", " + Math.floor(mouse.y) + ")", 10, 25); // mouse position
-    ctx.fillText("paused (P/esc): " + paused, 10, 50); // paused state
-    ctx.fillText("debug (D): " + debug, 10, 75); // debug state
-    ctx.fillText("game screen: " + gameScreen, 10, 100); // game screen
+    ctx.fillText("mouse: (" + Math.floor(mouse.x) + ", " + Math.floor(mouse.y) + ")", 210, 25); // mouse position
+    ctx.fillText("paused (P/esc): " + paused, 210, 50); // paused state
+    ctx.fillText("debug (D): " + debug, 210, 75); // debug state
+    ctx.fillText("game screen: " + gameScreen, 210, 100); // game screen
     //next column of debugging
     ctx.fillText("hovered tile: (" + hoveredTile.row + ", " + hoveredTile.col + ")", 500, 25); // hovered tile
     ctx.fillText("hovered slot row: " + hoveredSlotRow, 500, 50); // hovered slot row
