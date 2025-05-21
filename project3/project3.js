@@ -21,7 +21,8 @@ const buttonWidth = 300;
 const buttonHeight = 80;
 const baseMoney = 100; 
 let money = baseMoney;
-
+let baseHealth = 100; // base health for the player
+let health = baseHealth; // current health for the player
 
 const tileSize = 120;;
 const miniTileSize = 100;
@@ -29,6 +30,10 @@ let cornerX = 1280 - 9 * tileSize;
 let cornerY = 720 - 5 * tileSize;
 
 let tileCharacters = []; //initialize
+
+let tileEnemies = [[], [], [], [], []]; //initialize
+
+let tileProjectiles = [[], [], [], [], []]; //initialize
 
 class Tower {
     // static image = null;
@@ -119,7 +124,43 @@ class timCheese{
 
 class enemy1{
     // shared by all enemy1 objects
+    constructor(row, speed = 2){
+        this.row = row;
+        this.x = 1280; // start at the leftmost column
+        this.health = 100; // default health
+        // Vary speed by ±20%
+        this.speed = speed * (0.8 + Math.random() * 0.4);
+
+        //random color for each RGB  
+        let r = 0 + Math.floor(Math.random() * 256);
+        let g = 0 + Math.floor(Math.random() * 56);
+        let b = 0 + Math.floor(Math.random() * 156);
+        this.color = "rgb(" + r + ", " + g + ", " + b + ")";
+    }
+
+    update(){
+        this.x = this.x - this.speed; //move it
+
+        // check if enemey has crossed the screen
+        if (this.x < cornerX) {
+            let thisIndex = tileEnemies[this.row].indexOf(this);
+            if (thisIndex !== -1) { // enemy is in the list
+                tileEnemies[this.row].splice(thisIndex, 1); 
+                health = health - 10; 
+                }
+            } // subtract 10 health
+
+        //other updates
+
+    }
+
+    render(){
+        ctx.fillStyle = this.color; // enemy color
+        ctx.fillRect(this.x, cornerY + this.row * tileSize + tileSize/4, 50, 50);    
+    }
+
     
+
 }
 
 
@@ -176,32 +217,26 @@ document.addEventListener("keydown", (event) => {
             gameScreen = 0; // go to menu
             resetBoard(); // reset board TODO
             break;
-        case "keyB": //begin game
+        case "KeyB": //begin game
             beginGame();
             gameRunning = true;
+            break;
+        case "KeyE": //spawns an enemy
+            let randomRow = Math.floor(Math.random() * 5); // random row between 0 and 4
+            let enemy = new enemy1(randomRow); // spawn an enemy at row 0
+            tileEnemies[randomRow].push(enemy); // add the enemy to the list of enemies
+            // console.log(tileEnemies);
+            break;
 
     }
 
     if (!debug) return; // only look at switch with debug on
-    switch (event.key){
-        case "0":
-            gameScreen = 0;
-            break;
-        case "1":
-            gameScreen = 1;
-            break;
-        case "2":
-            gameScreen = 2;
-            break;
-        case "3":
-            gameScreen = 3;
-            break;
-        case "4":
-            gameScreen = 4;
-            break;
-        case "z":
-            gameScreen = -1;
-        
+    if (event.key >= "0" && event.key <= "4") {
+        gameScreen = parseInt(event.key, 10);
+        resetBoard();
+    } else if (event.key === "z") {
+        gameScreen = -1;
+        resetBoard();
     }
 });
 
@@ -381,7 +416,14 @@ function renderCharacters(){
         ctx.drawImage(tempImage, mouse.x - 50, mouse.y - 50, miniTileSize, miniTileSize);
     }
 
-    
+    //draw the enemies
+    for (let row = 0; row < 5; row++) {
+        for (let i = 0; i < tileEnemies[row].length; i++) {
+            let enemy = tileEnemies[row][i];
+            enemy.update();
+            enemy.render();
+        }
+    }
 }
 
 function renderHeldCharacter(){
@@ -439,7 +481,7 @@ function renderMenu(){
     ctx.restore();
 }
 
-function handleTime(){
+function handleTime(){ //really just handles money
     
     // make sure we are on the same seclnd
     if (!handleTime.lastTime) {handleTime.lastTime = Date.now();}
@@ -454,9 +496,10 @@ function handleTime(){
 
 function renderGameGui(){
     ctx.save();
-    ctx.font = "44px times new roman"; // font for player information
+    ctx.font = "40px times new roman"; // font for player information
     ctx.fillStyle = gameBlue;
     ctx.fillText("$: " + money, 10, 30); // money text
+    ctx.fillText("HP: " + health, 10, 70); // health text
     ctx.restore();
 
     //draw tiles (first 320 pixels on X axis ignored as well as first 180 on y axis)
@@ -548,10 +591,38 @@ function resetBoard(){
         [null, null, null, null, null, null, null, null, null]
     ];
 
+    tileEnemies = [   // reset enemies as a 2D list with 5 empty lists
+        [],
+        [],
+        [],
+        [],
+        []
+    ]; 
+
+    tileProjectiles = [ // reset projectiles
+        [],
+        [],
+        [],
+        [],
+        []
+    ];  
+
+
     money = baseMoney; // reset money
     gameRunning = false; // reset game running state
+    health = baseHealth; // reset health
     // set the lists of enemies to empty TODO
     // set the lists of projectiles to empty TODO
+}
+
+function beginGame(){
+    //board should be plain when this is called from reset board 
+    
+
+}
+
+function gameOverFunction(){
+    //TODO later
 }
 
 function drawText(){
@@ -575,6 +646,11 @@ function drawText(){
     ctx.fillText("hovered menu button: " + hoveredMenuButton, offset + 310, 100); // hovered menu button
     //column 3
     // ctx.fillText("last hovered slot row: " + lastHoveredSlotRow, 800, 25); // last hovered slot row
+
+    //quick loop for enemy count
+    let enemyCount = 0;
+    for (let row = 0; row < 5; row++) {enemyCount += tileEnemies[row].length; }
+    ctx.fillText("enemy count: " + enemyCount, offset + 610, 25); // enemy count
     }
 
     if (paused){
@@ -591,10 +667,6 @@ function drawText(){
         ctx.fillText("PAUSED", canvas.width / 2 - 50, canvas.height / 2); // paused text
         ctx.restore(); //come back 
     }
-}
-
-function gameOverFunction(){
-    //TODO later
 }
 
 // start drawing loop
