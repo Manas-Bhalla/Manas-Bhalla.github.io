@@ -8,8 +8,6 @@ let paused = false; // Declare the paused variable
 let debug = true; // Declare the debug variable
 let godmode = false; // Declare the godmode variable 
 let gameScreen = 0; // Declare the game screen variable
-let money = 0;
-
 /*
 0 = main menu
 1 = level 1
@@ -21,48 +19,85 @@ let money = 0;
 
 const buttonWidth = 300;
 const buttonHeight = 80;
+const baseMoney = 100; 
+let money = baseMoney;
 
-let tileSize = 120;
+
+const tileSize = 120;;
+const miniTileSize = 100;
 let cornerX = 1280 - 9 * tileSize;
 let cornerY = 720 - 5 * tileSize;
 
-let tileCharacters = [
-    ["", "", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", "", ""]
-];
+let tileCharacters = []; //initialize
 
-class napoleon {
-    // shared by all napoleon objects
-    static image = new Image(); 
-    static price = 100; 
+class Tower {
+    // static image = null;
+    // static price = 0;
 
+    constructor(row, col) {
+        this.row = row;
+        this.col = col;
+        this.health = 100; // default health
+        this.attackCooldown = 0;
+    }
+
+    attack(enemies) {
+        // todo
+    }
+
+    render() {
+        ctx.drawImage(this.image, 10 + cornerX + this.col * tileSize, 10 + cornerY + this.row * tileSize, miniTileSize, miniTileSize);
+    }
 }
 
-class ttts {
-    // shared by all ttts objects
-    static image = new Image(); 
-    static price = 200; 
+class napoleon extends Tower {
+    static image = new Image();
+    static price = 100;
+    constructor(row, col) {
+        super(row, col);
+        this.health = 100;
+        this.image = napoleon.image; 
+    }
 }
 
-class bateman {
-    // shared by all bateman objects
-    static image = new Image(); 
-    static price = 300; 
+class ttts extends Tower {
+    static image = new Image();
+    static price = 200;
+    constructor(row, col) {
+        super(row, col);
+        this.health = 100;
+        this.image = ttts.image;
+    }
 }
 
-class johnPork {
-    // shared by all johnPork objects
-    static image = new Image(); 
-    static price = 400; 
+class bateman extends Tower {
+    static image = new Image();
+    static price = 300;
+    constructor(row, col) {
+        super(row, col);
+        this.health = 100;
+        this.image = bateman.image;
+    }
 }
 
-class skibidi {
-    // shared by all skibidi objects
-    static image = new Image(); 
-    static price = 500; 
+class johnPork extends Tower {
+    static image = new Image();
+    static price = 400;
+    constructor(row, col) {
+        super(row, col);
+        this.health = 100;
+        this.image = johnPork.image;
+    }
+}
+
+class skibidi extends Tower {
+    static image = new Image();
+    static price = 500;
+    constructor(row, col) {
+        super(row, col);
+        this.health = 100;
+        this.image = skibidi.image;
+    }
 }
 
 //list to hold all the towers
@@ -82,6 +117,10 @@ class timCheese{
     static image = new Image(); 
 }
 
+class enemy1{
+    // shared by all enemy1 objects
+    
+}
 
 
 //new class based images
@@ -91,8 +130,11 @@ bateman.image.src = "bateman.jpg";
 johnPork.image.src = "johnPork.jpg";
 skibidi.image.src = "skibidi.jpg"; 
 
-//enemy images TODO
+//enemy images 
+//bossman gets an image
 timCheese.image.src = "timCheese.jpg"; 
+//everyone else is a red square
+
 
 let gameOver = false;
 
@@ -105,6 +147,7 @@ let mouse = {
 //tile properties
 let hoveredSlotRow = -1; // row of the hovered slot
 let hoveredMenuButton = -1; // row of the hovered menu button
+let lastHoveredSlotRow = -1;
 
 //hovered tile properties
 let hoveredTile = {
@@ -192,6 +235,10 @@ canvas.addEventListener("mousemove", (event) => {
         hoveredSlotRow = -1;
     }
 
+    if (hoveredSlotRow != -1 && hoveredSlotRow != lastHoveredSlotRow) { // update last hovered slot row
+        lastHoveredSlotRow = hoveredSlotRow; 
+    }
+
     //hover effect on menu buttons
     // Determine which menu button (if any) is hovered
     if (gameScreen == 0 && mouse.x >= 900 && mouse.x <= 1200) {
@@ -227,7 +274,7 @@ canvas.onclick = (event) => {
     }
 
     // place character
-    if (heldCharacter != "none"){ placeCharacter();}
+    if (heldCharacter != "none" && hoveredSlotRow == -1){ placeCharacter();} // i added hovered slot row check to make sure console error is gone
 
     // menu buttons
     // menu navigation
@@ -239,8 +286,33 @@ canvas.onclick = (event) => {
 
 function placeCharacter(){
     //place held character at tile based on tile
-    tileCharacters[hoveredTile.row][hoveredTile.col] = heldCharacter; // place the character in the tile array
+    // Place a new tower object based on heldCharacter
+    let towerInstance = null;
+    switch (heldCharacter) {
+        case "napoleon":
+            towerInstance = new napoleon(hoveredTile.row, hoveredTile.col);
+            break;
+        case "ttts":
+            towerInstance = new ttts(hoveredTile.row, hoveredTile.col);
+            break;
+        case "bateman":
+            towerInstance = new bateman(hoveredTile.row, hoveredTile.col);
+            break;
+        case "johnPork":
+            towerInstance = new johnPork(hoveredTile.row, hoveredTile.col);
+            break;
+        case "skibidi":
+            towerInstance = new skibidi(hoveredTile.row, hoveredTile.col);
+            break;
+        default:
+            towerInstance = null;
+    }
+
+    tileCharacters[hoveredTile.row][hoveredTile.col] = towerInstance;
+    money = money - towerPrices[lastHoveredSlotRow]; // subtract the price from the money. 
+
     heldCharacter = "none"; // remove held character
+    console.log(tileCharacters);
 }
 
 function draw() {
@@ -249,9 +321,8 @@ function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height); // clear the canvas
     requestAnimationFrame(draw); // next frame for animation
 
-    
-    //deciding what to do based on the game screen
-    switch (gameScreen) {
+
+    switch (gameScreen) { //handle the rendering based on the game screen
         case 0: //  menu and title screen
             renderMenu(); // render the menu
             break;
@@ -273,34 +344,14 @@ function draw() {
 }
 
 function renderCharacters(){
-    let miniTileSize = 100;
     let tempImage;
 
     //draw image of characters in the tile by iterating through the 2d list (tilecharacters)
     for (let row = 0; row < 5; row++) {
         for (let column = 0; column < 9; column++) {
-            // set tempImage based on character
-            switch (tileCharacters[row][column]) {
-            case "napoleon":
-                tempImage = napoleon.image;
-                break;
-            case "ttts":
-                tempImage = ttts.image;
-                break;
-            case "bateman":
-                tempImage = bateman.image;
-                break;
-            case "johnPork":
-                tempImage = johnPork.image;
-                break;
-            case "skibidi":
-                tempImage = skibidi.image;
-                break;
-            default:
-                tempImage = null;
-            }
-            if (tempImage) {
-            ctx.drawImage(tempImage, 10 + cornerX + column * tileSize, 10 + cornerY + row * tileSize, miniTileSize, miniTileSize);
+            let tower = tileCharacters[row][column]; // getting the object
+            if (tower != null) {
+                tower.render(ctx, cornerX, cornerY, tileSize);
             }
         }
     }   
@@ -393,10 +444,12 @@ function handleTime(){
     // make sure we are on the same seclnd
     if (!handleTime.lastTime) {handleTime.lastTime = Date.now();}
 
-    if (Date.now() - handleTime.lastTime >= 1000) { //over one tenth of a second
+    if (Date.now() - handleTime.lastTime >= 1000) { //over one tenth of a second - add money
         money = money + 10;
         handleTime.lastTime = Date.now();
     }
+
+    
 }
 
 function renderGameGui(){
@@ -488,14 +541,14 @@ function renderGameGui(){
 function resetBoard(){
     // set the lists of towers to empty
     tileCharacters = [
-    ["", "", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", "", ""],
-    ["", "", "", "", "", "", "", "", ""]
+        [null, null, null, null, null, null, null, null, null],
+        [null, null, null, null, null, null, null, null, null],
+        [null, null, null, null, null, null, null, null, null],
+        [null, null, null, null, null, null, null, null, null],
+        [null, null, null, null, null, null, null, null, null]
     ];
 
-    money = 0; // reset money
+    money = baseMoney; // reset money
     gameRunning = false; // reset game running state
     // set the lists of enemies to empty TODO
     // set the lists of projectiles to empty TODO
@@ -509,15 +562,19 @@ function drawText(){
     ctx.fillStyle = "blue"; // set fill color
     
     if(debug){
-    ctx.fillText("mouse: (" + Math.floor(mouse.x) + ", " + Math.floor(mouse.y) + ")", 210, 25); // mouse position
-    ctx.fillText("paused (P/esc): " + paused, 210, 50); // paused state
-    ctx.fillText("debug (D): " + debug, 210, 75); // debug state
-    ctx.fillText("game screen: " + gameScreen, 210, 100); // game screen
+    //column 1
+    var offset = 150;
+    ctx.fillText("mouse: (" + Math.floor(mouse.x) + ", " + Math.floor(mouse.y) + ")", offset + 10, 25); // mouse position
+    ctx.fillText("paused (P/esc): " + paused, offset + 10, 50); // paused state
+    ctx.fillText("debug (D): " + debug, offset + 10, 75); // debug state
+    ctx.fillText("game screen: " + gameScreen, offset + 10, 100); // game screen
     //next column of debugging
-    ctx.fillText("hovered tile: (" + hoveredTile.row + ", " + hoveredTile.col + ")", 500, 25); // hovered tile
-    ctx.fillText("hovered slot row: " + hoveredSlotRow, 500, 50); // hovered slot row
-    ctx.fillText("held character: " + heldCharacter, 500, 75); // held character
-    ctx.fillText("hovered menu button: " + hoveredMenuButton, 500, 100); // hovered menu button
+    ctx.fillText("hovered tile: (" + hoveredTile.row + ", " + hoveredTile.col + ")", offset + 310, 25); // hovered tile
+    ctx.fillText("hovered slot row: " + hoveredSlotRow + " (" + lastHoveredSlotRow + ")", offset + 310, 50); // hovered slot row
+    ctx.fillText("held character: " + heldCharacter, offset + 310, 75); // held character
+    ctx.fillText("hovered menu button: " + hoveredMenuButton, offset + 310, 100); // hovered menu button
+    //column 3
+    // ctx.fillText("last hovered slot row: " + lastHoveredSlotRow, 800, 25); // last hovered slot row
     }
 
     if (paused){
