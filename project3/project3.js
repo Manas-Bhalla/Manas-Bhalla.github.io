@@ -8,6 +8,7 @@ let paused = false; // Declare the paused variable
 let debug = true; // Declare the debug variable
 let godmode = false; // Declare the godmode variable 
 let gameScreen = 0; // Declare the game screen variable
+let generation = 10;
 /*
 0 = main menu
 1 = level 1
@@ -35,13 +36,16 @@ let tileEnemies = [[], [], [], [], []]; //initialize
 
 let tileProjectiles = [[], [], [], [], []]; //initialize
 
+
 class Tower {
     // static image = null;
-    // static price = 0;
+    // static price = 0; 
+    static slotCooldown = 0;
 
     constructor(row, col) {
         this.row = row;
         this.col = col;
+        this.maxHealth = 100; //max health
         this.health = 100; // default health
         this.attackCooldown = 0;
     }
@@ -52,6 +56,21 @@ class Tower {
 
     render() {
         ctx.drawImage(this.image, 10 + cornerX + this.col * tileSize, 10 + cornerY + this.row * tileSize, miniTileSize, miniTileSize);
+        //if health is less than max health, draw health bar
+        if (this.health < this.maxHealth) {
+            ctx.fillStyle = "red"; // health bar color
+            ctx.fillRect(10 + cornerX + this.col * tileSize, 10 + cornerY + this.row * tileSize - 10, miniTileSize * (this.health / this.maxHealth), 5); // health bar
+        }
+    }
+
+    update(){
+        //check if hp is above 0
+        if (this.health <= 0) {
+            //remove the tower from the tileCharacters list
+            tileCharacters[this.row][this.col] = null; // remove the tower from the list
+            this.image = null; // remove the image
+            calculateGeneration();
+        }
     }
 }
 
@@ -70,14 +89,15 @@ class ttts extends Tower {
     static price = 200;
     constructor(row, col) {
         super(row, col);
-        this.health = 100;
+        this.maxHealth = 500;
+        this.health = this.maxHealth
         this.image = ttts.image;
     }
 }
 
 class bateman extends Tower {
     static image = new Image();
-    static price = 300;
+    static price = 100;
     constructor(row, col) {
         super(row, col);
         this.health = 100;
@@ -97,7 +117,7 @@ class johnPork extends Tower {
 
 class skibidi extends Tower {
     static image = new Image();
-    static price = 500;
+    static price = 50;
     constructor(row, col) {
         super(row, col);
         this.health = 100;
@@ -128,6 +148,7 @@ class enemy1{
         this.row = row;
         this.x = 1280; // start at the leftmost column
         this.health = 100; // default health
+        this.obstructed = false;
         // Vary speed by ±20%
         this.speed = speed * (0.8 + Math.random() * 0.4);
 
@@ -139,7 +160,7 @@ class enemy1{
     }
 
     update(){
-        this.x = this.x - this.speed; //move it
+        if(this.obstructed == false){this.x = this.x - this.speed;} //move it
 
         // check if enemey has crossed the screen
         if (this.x < cornerX) {
@@ -151,7 +172,21 @@ class enemy1{
             } // subtract 10 health
 
         //other updates
+        //attacking
 
+        //if enemy is in the same column as a tower and within 50 pixels of it, attack
+        // Calculate the column the enemy is currently on
+        let col = Math.floor((this.x - cornerX) / tileSize);
+        if (col >= 0 && col < 9) {
+            let tower = tileCharacters[this.row][col];
+            if (tower) {
+            // Attack the tower
+            this.obstructed = true;
+            tower.health -= 1;
+            console.log(this.obstructed);
+            }
+            else{this.obstructed=false;}
+        }
     }
 
     render(){
@@ -310,7 +345,6 @@ canvas.onclick = (event) => {
 
     // place character
     if (heldCharacter != "none" && hoveredSlotRow == -1){ placeCharacter();} // i added hovered slot row check to make sure console error is gone
-
     // menu buttons
     // menu navigation
     if (hoveredMenuButton !== -1) {
@@ -326,18 +360,23 @@ function placeCharacter(){
     switch (heldCharacter) {
         case "napoleon":
             towerInstance = new napoleon(hoveredTile.row, hoveredTile.col);
+            napoleon.slotCooldown = 5;
             break;
         case "ttts":
             towerInstance = new ttts(hoveredTile.row, hoveredTile.col);
+            ttts.slotCooldown = 5;
             break;
         case "bateman":
             towerInstance = new bateman(hoveredTile.row, hoveredTile.col);
+            bateman.slotCooldown = 5;
             break;
         case "johnPork":
             towerInstance = new johnPork(hoveredTile.row, hoveredTile.col);
+            johnPork.slotCooldown = 5;
             break;
         case "skibidi":
             towerInstance = new skibidi(hoveredTile.row, hoveredTile.col);
+            skibidi.slotCooldown = 5;
             break;
         default:
             towerInstance = null;
@@ -345,9 +384,9 @@ function placeCharacter(){
 
     tileCharacters[hoveredTile.row][hoveredTile.col] = towerInstance;
     money = money - towerPrices[lastHoveredSlotRow]; // subtract the price from the money. 
-
     heldCharacter = "none"; // remove held character
     console.log(tileCharacters);
+    calculateGeneration();
 }
 
 function draw() {
@@ -387,6 +426,7 @@ function renderCharacters(){
             let tower = tileCharacters[row][column]; // getting the object
             if (tower != null) {
                 tower.render(ctx, cornerX, cornerY, tileSize);
+                tower.update();
             }
         }
     }   
@@ -481,16 +521,28 @@ function renderMenu(){
     ctx.restore();
 }
 
+function calculateGeneration(){
+    let zzz = 10;
+    for (let row = 0; row < 5; row++) {
+        for(let col = 0; col < 9; col++){
+            if (tileCharacters[row][col] instanceof bateman){zzz = zzz + 10;}
+        }
+    }
+
+    generation = zzz;
+}
+
 function handleTime(){ //really just handles money
     
     // make sure we are on the same seclnd
     if (!handleTime.lastTime) {handleTime.lastTime = Date.now();}
 
     if (Date.now() - handleTime.lastTime >= 1000) { //over one tenth of a second - add money
-        money = money + 10;
+        money = money + generation;
         handleTime.lastTime = Date.now();
     }
 
+    
     
 }
 
@@ -543,7 +595,6 @@ function renderGameGui(){
         ctx.fillRect(0, cornerY + hoveredSlotRow * tileSize, cornerX, tileSize); //cornerX used as width here
         ctx.restore();
     }
-
     
     //text for tower prices
     ctx.save();
@@ -651,6 +702,7 @@ function drawText(){
     let enemyCount = 0;
     for (let row = 0; row < 5; row++) {enemyCount += tileEnemies[row].length; }
     ctx.fillText("enemy count: " + enemyCount, offset + 610, 25); // enemy count
+    ctx.fillText("$ gen: " + generation, offset + 610, 50); // money generation
     }
 
     if (paused){
@@ -668,6 +720,8 @@ function drawText(){
         ctx.restore(); //come back 
     }
 }
+
+
 
 // start drawing loop
 draw();
