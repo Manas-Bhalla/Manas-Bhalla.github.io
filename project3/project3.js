@@ -45,12 +45,14 @@ class Tower {
     constructor(row, col) {
         this.row = row;
         this.col = col;
+        this.x = cornerX + col * tileSize; // x position
+        this.y = cornerY + row * tileSize; // y position
         this.maxHealth = 100; //max health
         this.health = 100; // default health
-        this.attackCooldown = 0;
+        // this.attackCooldown = 0;
     }
 
-    attack(enemies) {
+    attack() {
         // todo
     }
 
@@ -71,6 +73,8 @@ class Tower {
             this.image = null; // remove the image
             calculateGeneration();
         }
+        //also should attack if enemies are in the same row
+        if (tileEnemies[this.row].length > 0){this.attack();}
     }
 }
 
@@ -89,7 +93,7 @@ class ttts extends Tower {
     static price = 200;
     constructor(row, col) {
         super(row, col);
-        this.maxHealth = 500;
+        this.maxHealth = 1500;
         this.health = this.maxHealth
         this.image = ttts.image;
     }
@@ -98,6 +102,7 @@ class ttts extends Tower {
 class bateman extends Tower {
     static image = new Image();
     static price = 100;
+    static incrementPower = 5;
     constructor(row, col) {
         super(row, col);
         this.health = 100;
@@ -117,12 +122,33 @@ class johnPork extends Tower {
 
 class skibidi extends Tower {
     static image = new Image();
-    static price = 50;
+    static price = 500;
     constructor(row, col) {
         super(row, col);
-        this.health = 100;
+        this.maxHealth = 9999;
+        this.health = this.maxHealth;
         this.image = skibidi.image;
     }
+
+    attack(){
+
+        if (!this.lastAttackTime) {this.lastAttackTime = Date.now();}  
+        let diff = Date.now() - this.lastAttackTime;
+        if (Date.now() - this.lastAttackTime >= 500) { // after a bit
+            // 10 damage to all enemies in this row
+            for (let i = 0; i < tileEnemies[this.row].length; i++) {
+                tileEnemies[this.row][i].health -= 100;
+            }
+
+            this.health = 0; // kill the skibidi
+            this.lastAttackTime = Date.now();
+        }
+        //orange fuse bar
+        ctx.fillStyle = "orange"; // 
+        ctx.fillRect(this.x+110, this.y+110, 10, -1*(100 - diff/5));
+    }
+
+    
 }
 
 //list to hold all the towers
@@ -137,17 +163,13 @@ let towerPrices = [
 
 //enemies
 
-class timCheese{
-    // shared by all timCheese objects
-    static image = new Image(); 
-}
-
 class enemy1{
     // shared by all enemy1 objects
     constructor(row, speed = 2){
         this.row = row;
-        this.x = 1280; // start at the leftmost column
-        this.health = 100; // default health
+        this.x = 1250; // start at the leftmost column
+        this.maxHealth = 100; // max health
+        this.health = this.maxHealth; // default health
         this.obstructed = false;
         // Vary speed by ±20%
         this.speed = speed * (0.8 + Math.random() * 0.4);
@@ -172,32 +194,51 @@ class enemy1{
             } // subtract 10 health
 
         //other updates
-        //attacking
+        
+        //test: decrease hp 
+        // this.health -= 0.5; // decrease health by 0.1 every frame
 
         //if enemy is in the same column as a tower and within 50 pixels of it, attack
-        // Calculate the column the enemy is currently on
-        let col = Math.floor((this.x - cornerX) / tileSize);
+        let col = Math.floor((this.x - cornerX) / tileSize); //column its on
         if (col >= 0 && col < 9) {
             let tower = tileCharacters[this.row][col];
             if (tower) {
-            // Attack the tower
             this.obstructed = true;
             tower.health -= 1;
-            console.log(this.obstructed);
+            // console.log(this.obstructed);
             }
             else{this.obstructed=false;}
+            if (tower instanceof ttts){this.health--;} // tung tung tung shall damage the enemy!
+        }
+
+        //check if dead
+        let thisIndex = tileEnemies[this.row].indexOf(this);
+        if (this.health <= 0 && thisIndex != -1){
+            tileEnemies[this.row].splice(thisIndex, 1); // remove the enemy from the list
         }
     }
 
     render(){
         ctx.fillStyle = this.color; // enemy color
         ctx.fillRect(this.x, cornerY + this.row * tileSize + tileSize/4, 50, 50);    
+        //if health is less than max health, draw health bar
+        if (this.health < this.maxHealth) {
+            ctx.fillStyle = "red"; // health bar color
+            ctx.fillRect(this.x, cornerY + this.row * tileSize + 20, 50 * (this.health / this.maxHealth), 5); // health bar
+        }
     }
-
-    
 
 }
 
+class timCheese extends enemy1 {
+    constructor(row, speed = 5){
+        super(row, speed);
+        this.health = 1000; // default health
+        this.image = timCheese.image; // image for the boss
+    }
+    // shared by all timCheese objects
+    static image = new Image(); 
+}
 
 //new class based images
 napoleon.image.src = "napoleon.jpg";
@@ -256,12 +297,6 @@ document.addEventListener("keydown", (event) => {
             beginGame();
             gameRunning = true;
             break;
-        case "KeyE": //spawns an enemy
-            let randomRow = Math.floor(Math.random() * 5); // random row between 0 and 4
-            let enemy = new enemy1(randomRow); // spawn an enemy at row 0
-            tileEnemies[randomRow].push(enemy); // add the enemy to the list of enemies
-            // console.log(tileEnemies);
-            break;
 
     }
 
@@ -272,6 +307,9 @@ document.addEventListener("keydown", (event) => {
     } else if (event.key === "z") {
         gameScreen = -1;
         resetBoard();
+    } else if (event.key === "s") {
+        spawnEnemy(-1); // random row spawn (-1)
+        // console.log(tileEnemies);
     }
 });
 
@@ -389,6 +427,19 @@ function placeCharacter(){
     calculateGeneration();
 }
 
+function spawnEnemy(row = -1){
+    if (row == -1){
+        let randomRow = Math.floor(Math.random() * 5); // random row between 0 and 4
+        let enemy = new enemy1(randomRow); // spawn an enemy at row 0
+        tileEnemies[randomRow].push(enemy); // add the enemy to the list of enemies
+    }
+    else {
+        let enemy = new enemy1(row-1);
+        tileEnemies[row-1].push(enemy); // add the enemy to the list of enemies
+    }
+    
+}
+
 function draw() {
     
     
@@ -425,8 +476,8 @@ function renderCharacters(){
         for (let column = 0; column < 9; column++) {
             let tower = tileCharacters[row][column]; // getting the object
             if (tower != null) {
-                tower.render(ctx, cornerX, cornerY, tileSize);
-                tower.update();
+                tower.render();
+                if (!paused){tower.update();}
             }
         }
     }   
@@ -460,7 +511,7 @@ function renderCharacters(){
     for (let row = 0; row < 5; row++) {
         for (let i = 0; i < tileEnemies[row].length; i++) {
             let enemy = tileEnemies[row][i];
-            enemy.update();
+            if (!paused){enemy.update();}
             enemy.render();
         }
     }
@@ -525,7 +576,7 @@ function calculateGeneration(){
     let zzz = 10;
     for (let row = 0; row < 5; row++) {
         for(let col = 0; col < 9; col++){
-            if (tileCharacters[row][col] instanceof bateman){zzz = zzz + 10;}
+            if (tileCharacters[row][col] instanceof bateman){zzz = zzz + bateman.incrementPower;}
         }
     }
 
@@ -537,7 +588,7 @@ function handleTime(){ //really just handles money
     // make sure we are on the same seclnd
     if (!handleTime.lastTime) {handleTime.lastTime = Date.now();}
 
-    if (Date.now() - handleTime.lastTime >= 1000) { //over one tenth of a second - add money
+    if (Date.now() - handleTime.lastTime >= 1000 && !paused) { //over one tenth of a second - add money
         money = money + generation;
         handleTime.lastTime = Date.now();
     }
@@ -676,7 +727,7 @@ function gameOverFunction(){
     //TODO later
 }
 
-function drawText(){
+function drawText(){ //and paused overlay as well
 
     //align stuff
     ctx.textAlign = "left"; // align text to left
