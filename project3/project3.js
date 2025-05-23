@@ -124,13 +124,12 @@ class skibidi extends Tower {
     static price = 500;
     constructor(row, col) {
         super(row, col);
-        this.maxHealth = 9999;
+        this.maxHealth = 9999; 
         this.health = this.maxHealth;
         this.image = skibidi.image;
     }
 
     attack(){
-
         if (!this.lastAttackTime) {this.lastAttackTime = Date.now();}  
         let diff = Date.now() - this.lastAttackTime;
         if (Date.now() - this.lastAttackTime >= 500) { // after a bit
@@ -308,20 +307,29 @@ document.addEventListener("keydown", (event) => {
     // HOLDING STUFF WITH QWERT KEYS, only if not in menu
     if (gameScreen !== 0 && gameScreen !== -1) { // if not in menu
             switch (event.code) {
-            case "KeyQ": heldCharacter = "napoleon";
+            case "KeyQ": 
+                heldCharacter = "napoleon";
                 lastHoveredSlotRow = 0; 
                 break;
-            case "KeyW": heldCharacter = "ttts";
+            case "KeyW": 
+                heldCharacter = "ttts";
                 lastHoveredSlotRow = 1;
                 break;
-            case "KeyE": heldCharacter = "bateman";
+            case "KeyE": 
+                heldCharacter = "bateman";
                 lastHoveredSlotRow = 2;
                 break;
-            case "KeyR": heldCharacter = "johnPork";
-                lastHoveredSlotRow = 3;
+            case "KeyR": 
+                if (gameScreen >= 2){
+                    heldCharacter = "johnPork";
+                    lastHoveredSlotRow = 3;
+                }
                 break;
-            case "KeyT": heldCharacter = "skibidi";
+            case "KeyT": 
+            if (gameScreen >= 3){
+                heldCharacter = "skibidi";
                 lastHoveredSlotRow = 4;
+            }     
                 break;
             }
         }
