@@ -20,7 +20,7 @@ let generation = 10;
 
 const buttonWidth = 300;
 const buttonHeight = 80;
-const baseMoney = 100; 
+const baseMoney = 200; 
 let money = baseMoney;
 let baseHealth = 100; // base health for the player
 let health = baseHealth; // current health for the player
@@ -171,7 +171,7 @@ let towerHotKeys = [
 
 class enemy1{
     // shared by all enemy1 objects
-    constructor(row, speed = 2){
+    constructor(row, speed = 1){
         this.row = row;
         this.x = 1250; // start at the leftmost column
         this.maxHealth = 100; // max health
@@ -462,14 +462,14 @@ function placeCharacter(){
     calculateGeneration();
 }
 
-function spawnEnemy(row = -1){
+function spawnEnemy(speed = 1, row = -1){
     if (row == -1){
         let randomRow = Math.floor(Math.random() * 5); // random row between 0 and 4
-        let enemy = new enemy1(randomRow); // spawn an enemy at row 0
+        let enemy = new enemy1(randomRow, speed); // spawn an enemy at row 0
         tileEnemies[randomRow].push(enemy); // add the enemy to the list of enemies
     }
     else {
-        let enemy = new enemy1(row-1);
+        let enemy = new enemy1(row-1, speed);
         tileEnemies[row-1].push(enemy); // add the enemy to the list of enemies
     }
     
@@ -611,7 +611,7 @@ function calculateGeneration(){
     let zzz = 10;
     for (let row = 0; row < 5; row++) {
         for(let col = 0; col < 9; col++){
-            if (tileCharacters[row][col] instanceof bateman){zzz = zzz + 5;}
+            if (tileCharacters[row][col] instanceof bateman){zzz = zzz + 10;}
         }
     }
 
@@ -718,6 +718,27 @@ function renderGameGui(){
     ctx.textBaseline = "middle";
     ctx.fillText("Menu", 1250 - buttonWidth / 2, 20 + buttonHeight / 2);
     ctx.restore(); 
+
+    //draw bar of progress in a level
+    if (totalWaves > 0 && gameScreen > 0) {
+        //progress bar background
+        ctx.save();
+        ctx.fillStyle = "#ccc";
+        ctx.fillRect(550, 100, buttonWidth, 20);
+
+        // Draw progress bar fill
+        let progress = Math.min(wavesCompleted / totalWaves, 1);
+        ctx.fillStyle = gameBlue;
+        ctx.fillRect(550, 100, buttonWidth * progress, 20);
+
+        // Draw progress text
+        ctx.font = "20px Times New Roman";
+        ctx.fillStyle = "white";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("Wave " + wavesCompleted + " / " + totalWaves, 550 + buttonWidth / 2, 110);
+        ctx.restore();
+    }
 }
 
 function resetBoard(){
@@ -751,14 +772,48 @@ function resetBoard(){
     gameRunning = false; // reset game running state
     health = baseHealth; // reset health
     calculateGeneration(); // recalculate generation
+    beginGame();
     // set the lists of enemies to empty TODO
     // set the lists of projectiles to empty TODO
 }
 
-function beginGame(){
-    //board should be plain when this is called from reset board 
-    
+let wavesCompleted = 0; // number of waves completed
+let totalWaves = -1;
 
+function beginGame(){
+    //board should be plain when this is called from reset board
+    let endlessMultiplier = 1; // just 1 if not endless, will be increased if endless as waves go up
+    let difficulty = gameScreen; // set difficulty based on game screen
+    totalWaves = 10 + 5*(difficulty-1);
+    let endless = false;
+    if (gameScreen == 4){endless = true;}
+    if (endless){endlessMultiplier = 1.1; totalWaves = 9999;} //now i can square it repeatedly to increase difficulty throughout endless mode
+
+    wavesCompleted = 0; 
+    spawnWave();
+    wavesCompleted++;
+    console.log(totalWaves);
+    //clear and begin the interval for rounds
+    if(beginGame.waveInterval){clearInterval(beginGame.waveInterval)};
+    beginGame.waveInterval = setInterval(function() {
+        if (gameScreen < 1 || paused == true || wavesCompleted >= totalWaves) {console.log("waves inactive"); return;}
+        if(endless == true){endlessMultiplier = endlessMultiplier + .2;}
+        spawnWave(endlessMultiplier);
+        wavesCompleted++;
+    }, 5000);
+}
+
+function spawnWave(endlessMultiplier){
+    // spawn enemies based on the difficulty
+    let difficulty = gameScreen; // set difficulty based on game screen
+    let enemiesPerWave = difficulty*1 + 4; 
+
+    // spawn enemies in random rows
+    let enemyboost = Math.floor(1-endlessMultiplier)*10;
+    let newEnemyCount = enemiesPerWave + enemyboost;
+    for (let i = 0; i < enemiesPerWave; i++) {
+        spawnEnemy(endlessMultiplier);
+    }
 }
 
 function gameOverFunction(){
@@ -783,9 +838,11 @@ function drawText(){ //and paused overlay as well
     ctx.fillText("hovered tile: (" + hoveredTile.row + ", " + hoveredTile.col + ")", offset + 310, 25); // hovered tile
     ctx.fillText("hovered slot row: " + hoveredSlotRow + " (" + lastHoveredSlotRow + ")", offset + 310, 50); // hovered slot row
     ctx.fillText("held character: " + heldCharacter, offset + 310, 75); // held character
-    ctx.fillText("hovered menu button: " + hoveredMenuButton, offset + 310, 100); // hovered menu button
+    // ctx.fillText("hovered menu button: " + hoveredMenuButton, offset + 310, 100); // hovered menu button
+
     //column 3
     // ctx.fillText("last hovered slot row: " + lastHoveredSlotRow, 800, 25); // last hovered slot row
+    
 
     //quick loop for enemy count
     let enemyCount = 0;
