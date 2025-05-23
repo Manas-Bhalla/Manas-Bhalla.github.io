@@ -102,7 +102,6 @@ class ttts extends Tower {
 class bateman extends Tower {
     static image = new Image();
     static price = 100;
-    static incrementPower = 5;
     constructor(row, col) {
         super(row, col);
         this.health = 100;
@@ -159,6 +158,14 @@ let towerPrices = [
     bateman.price,  // price for 3
     johnPork.price, // price for 4
     skibidi.price   // price for 5
+];
+
+let towerHotKeys = [
+    "Q", // napoleon
+    "W", // ttts
+    "E", // bateman
+    "R", // johnPork
+    "T"  // skibidi
 ];
 
 //enemies
@@ -297,8 +304,27 @@ document.addEventListener("keydown", (event) => {
             beginGame();
             gameRunning = true;
             break;
-
     }
+    // HOLDING STUFF WITH QWERT KEYS, only if not in menu
+    if (gameScreen !== 0 && gameScreen !== -1) { // if not in menu
+            switch (event.code) {
+            case "KeyQ": heldCharacter = "napoleon";
+                lastHoveredSlotRow = 0; 
+                break;
+            case "KeyW": heldCharacter = "ttts";
+                lastHoveredSlotRow = 1;
+                break;
+            case "KeyE": heldCharacter = "bateman";
+                lastHoveredSlotRow = 2;
+                break;
+            case "KeyR": heldCharacter = "johnPork";
+                lastHoveredSlotRow = 3;
+                break;
+            case "KeyT": heldCharacter = "skibidi";
+                lastHoveredSlotRow = 4;
+                break;
+            }
+        }
 
     if (!debug) return; // only look at switch with debug on
     if (event.key >= "0" && event.key <= "4") {
@@ -419,8 +445,9 @@ function placeCharacter(){
         default:
             towerInstance = null;
     }
-
     tileCharacters[hoveredTile.row][hoveredTile.col] = towerInstance;
+
+    //money check
     money = money - towerPrices[lastHoveredSlotRow]; // subtract the price from the money. 
     heldCharacter = "none"; // remove held character
     console.log(tileCharacters);
@@ -576,7 +603,7 @@ function calculateGeneration(){
     let zzz = 10;
     for (let row = 0; row < 5; row++) {
         for(let col = 0; col < 9; col++){
-            if (tileCharacters[row][col] instanceof bateman){zzz = zzz + bateman.incrementPower;}
+            if (tileCharacters[row][col] instanceof bateman){zzz = zzz + 5;}
         }
     }
 
@@ -657,9 +684,11 @@ function renderGameGui(){
         if (i - 2 < gameScreen) {
             ctx.save();
             ctx.fillStyle = gameBlue;
-            ctx.fillRect(145, 85 + cornerY + i * tileSize, 55, 35);
+            ctx.fillRect(145, 85 + cornerY + i * tileSize, 55, 35); // price box
+            ctx.fillRect(0, 85 + cornerY + i * tileSize, 35, 35); //hotkeys box
             ctx.restore();
             ctx.fillText(towerPrices[i], 200 - 3, 10 + cornerY + i * tileSize + tileSize - 10);
+            ctx.fillText(towerHotKeys[i], 30, 10 + cornerY + i * tileSize + tileSize - 10);
         }
     }
 
@@ -713,6 +742,7 @@ function resetBoard(){
     money = baseMoney; // reset money
     gameRunning = false; // reset game running state
     health = baseHealth; // reset health
+    calculateGeneration(); // recalculate generation
     // set the lists of enemies to empty TODO
     // set the lists of projectiles to empty TODO
 }
