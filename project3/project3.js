@@ -20,7 +20,7 @@ let generation = 10;
 
 const buttonWidth = 300;
 const buttonHeight = 80;
-const baseMoney = 200; 
+const baseMoney = 750; 
 let money = baseMoney;
 let baseHealth = 100; // base health for the player
 let health = baseHealth; // current health for the player
@@ -36,6 +36,7 @@ let tileEnemies = [[], [], [], [], []]; //initialize
 
 let tileProjectiles = [[], [], [], [], []]; //initialize
 
+let goldenSkibidi = false; // make the skibidi toilet not die instantly
 
 class Tower {
     // static image = null;
@@ -53,7 +54,7 @@ class Tower {
     }
 
     attack() {
-        // todo
+        // just make in the subclasses
     }
 
     render() {
@@ -81,12 +82,70 @@ class Tower {
 class napoleon extends Tower {
     static image = new Image();
     static price = 100;
+    static damage = 25;
     constructor(row, col) {
         super(row, col);
         this.health = 100;
-        this.image = napoleon.image; 
+        this.image = napoleon.image;
+        this.lastAttackTime = 0;
+    }
+
+    attack() {
+        // fire if cooldown has passed and with enemies in the row
+        if (!this.lastAttackTime) {this.lastAttackTime = Date.now()};
+        if (Date.now() - this.lastAttackTime >= 500 && tileEnemies[this.row].length > 0) {
+            // fir bullet
+            tileProjectiles[this.row].push(new napoleonBullet(this.row, this.col, this.x, this.y + miniTileSize / 2));
+            this.lastAttackTime = Date.now();
+        }
     }
 }
+
+class napoleonBullet {
+    constructor(row, col, x, y) {
+        this.row = row;
+        this.col = col;
+        this.x = x;
+        this.y = y;
+        this.radius = 12;
+        this.speed = 10;
+        this.damage = napoleon.damage;
+        this.active = true;
+    }
+
+    update() {
+        this.x += this.speed;
+        let enemies = tileEnemies[this.row];
+        for (let i = 0; i < enemies.length; i++) {
+            let enemy = enemies[i];
+            // collision
+            if (
+                this.x + this.radius > enemy.x &&
+                this.y + this.radius > cornerY + this.row * tileSize + tileSize / 4 &&
+                this.y - this.radius < cornerY + this.row * tileSize + tileSize / 4 + enemy.height
+            ) {
+                enemy.health = enemy.health - this.damage;
+                this.active = false;
+                break; //leave for loop afer finding an enemy
+            }
+        }
+        // remove if off screen
+        if (this.x > canvas.width) {
+            this.active = false;
+        }
+    }
+
+    render() {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+        ctx.fillStyle = "silver";
+        ctx.fill();
+        ctx.restore();
+    }
+}
+
+
 
 class ttts extends Tower {
     static image = new Image();
@@ -101,7 +160,7 @@ class ttts extends Tower {
 
 class bateman extends Tower {
     static image = new Image();
-    static price = 100;
+    static price = 75;
     constructor(row, col) {
         super(row, col);
         this.health = 100;
@@ -117,6 +176,10 @@ class johnPork extends Tower {
         this.health = 100;
         this.image = johnPork.image;
     }
+}
+
+class johnPorkLaser{
+
 }
 
 class skibidi extends Tower {
@@ -135,10 +198,10 @@ class skibidi extends Tower {
         if (Date.now() - this.lastAttackTime >= 500) { // after a bit
             // 10 damage to all enemies in this row
             for (let i = 0; i < tileEnemies[this.row].length; i++) {
-                tileEnemies[this.row][i].health -= 100;
+                tileEnemies[this.row][i].health -= tileEnemies[this.row][i].health;
             }
 
-            this.health = 0; // kill the skibidi
+            if(goldenSkibidi == false){this.health = 0;}// kill the skibidi
             this.lastAttackTime = Date.now();
         }
         //orange fuse bar
@@ -149,45 +212,36 @@ class skibidi extends Tower {
     
 }
 
-//list to hold all the towers
-
-let towerPrices = [
-    napoleon.price, // price for 1
-    ttts.price,     // price for 2
-    bateman.price,  // price for 3
-    johnPork.price, // price for 4
-    skibidi.price   // price for 5
-];
-
-let towerHotKeys = [
-    "Q", // napoleon
-    "W", // ttts
-    "E", // bateman
-    "R", // johnPork
-    "T"  // skibidi
-];
-
 //enemies
 
 class enemy1{
     // shared by all enemy1 objects
-    constructor(row, speed = 1){
+    constructor(row, multiplier = 1){
         this.row = row;
         this.x = 1250; // start at the leftmost column
-        this.maxHealth = 100; // max health
+        this.maxHealth = Math.floor(90 + 10 * multiplier); // max health
         this.health = this.maxHealth; // default health
         this.obstructed = false;
-        // Vary speed by ±20%
-        this.speed = speed * (0.8 + Math.random() * 0.4);
+        this.width = 50;
+        this.height = 50;
+        // random speed
+        this.speed = 1 + 0.1*multiplier * (0.8 + Math.random() * 0.4);
+        this.speed = this.speed * .5; // cut it in half because its too fast
+        // console.log(this.speed);
 
         //random color for each RGB  
         let r = 0 + Math.floor(Math.random() * 256);
         let g = 0 + Math.floor(Math.random() * 56);
         let b = 0 + Math.floor(Math.random() * 156);
         this.color = "rgb(" + r + ", " + g + ", " + b + ")";
+
+        // //logging for debugging
+        // console.log("multiplier: " + multiplier);
+        // console.log("max hp: " + this.maxHealth);
+        // console.log("speed: " + this.speed);
     }
 
-    update(){
+    update(damageBoost = 1){
         if(this.obstructed == false){this.x = this.x - this.speed;} //move it
 
         // check if enemey has crossed the screen
@@ -210,7 +264,7 @@ class enemy1{
             let tower = tileCharacters[this.row][col];
             if (tower) {
             this.obstructed = true;
-            tower.health -= 1;
+            tower.health -= .5 * damageBoost;
             // console.log(this.obstructed);
             }
             else{this.obstructed=false;}
@@ -224,27 +278,64 @@ class enemy1{
         }
     }
 
-    render(){
+    render(normalEnemy = true){
         ctx.fillStyle = this.color; // enemy color
-        ctx.fillRect(this.x, cornerY + this.row * tileSize + tileSize/4, 50, 50);    
+        if(normalEnemy){ctx.fillRect(this.x, cornerY + this.row * tileSize + tileSize/4, 50, 50)};    
         //if health is less than max health, draw health bar
         if (this.health < this.maxHealth) {
             ctx.fillStyle = "red"; // health bar color
-            ctx.fillRect(this.x, cornerY + this.row * tileSize + 20, 50 * (this.health / this.maxHealth), 5); // health bar
+            ctx.fillRect(this.x, cornerY + this.row * tileSize + 20, this.width * (this.health / this.maxHealth), 5); // health bar
         }
     }
 
 }
 
 class timCheese extends enemy1 {
-    constructor(row, speed = 5){
-        super(row, speed);
-        this.health = 1000; // default health
-        this.image = timCheese.image; // image for the boss
-    }
     // shared by all timCheese objects
     static image = new Image(); 
+
+    constructor(row, multiplier = 1){
+        super(row, multiplier);
+        this.speed = this.speed / 3;
+        this.maxHealth = this.maxHealth * 5;
+        this.health = this.maxHealth;
+        this.width = 75;
+        this.height = 90;
+        // console.log(this);
+    }
+
+    render(){
+        ctx.drawImage(timCheese.image, this.x, cornerY + this.row * tileSize + 15, this.width, this.height);
+        if (this.health < this.maxHealth) {
+            ctx.fillStyle = "red"; // health bar color
+            ctx.fillRect(this.x, cornerY + this.row * tileSize + 5, this.width * (this.health / this.maxHealth), 5); // health bar
+        }
+    }
+
+    update(){
+        super.update(3);
+    }
+    
 }
+
+//list to hold all the towers
+
+let towerPrices = [
+    napoleon.price, // price for 1
+    ttts.price,     // price for 2
+    bateman.price,  // price for 3
+    johnPork.price, // price for 4
+    skibidi.price   // price for 5
+];
+
+let towerHotKeys = [
+    "Q", // napoleon
+    "W", // ttts
+    "E", // bateman
+    "R", // johnPork
+    "T"  // skibidi
+];
+
 
 //new class based images
 napoleon.image.src = "napoleon.jpg";
@@ -299,10 +390,10 @@ document.addEventListener("keydown", (event) => {
             gameScreen = 0; // go to menu
             resetBoard(); // reset board TODO
             break;
-        case "KeyB": //begin game
-            beginGame();
-            gameRunning = true;
-            break;
+        // case "KeyB": //begin game
+        //     beginGame();
+        //     gameRunning = true;
+        //     break;
     }
     // HOLDING STUFF WITH QWERT KEYS, only if not in menu
     if (gameScreen !== 0 && gameScreen !== -1) { // if not in menu
@@ -453,26 +544,41 @@ function placeCharacter(){
         default:
             towerInstance = null;
     }
-    tileCharacters[hoveredTile.row][hoveredTile.col] = towerInstance;
+    if (money - towerPrices[lastHoveredSlotRow] > 0 || debug == true){ //only place if you have enough money or if im in debug mode
+        tileCharacters[hoveredTile.row][hoveredTile.col] = towerInstance;
 
-    //money check
-    money = money - towerPrices[lastHoveredSlotRow]; // subtract the price from the money. 
-    heldCharacter = "none"; // remove held character
-    console.log(tileCharacters);
-    calculateGeneration();
+        //money check
+        money = money - towerPrices[lastHoveredSlotRow]; // subtract the price from the money. 
+        heldCharacter = "none"; // remove held character
+        console.log(tileCharacters);
+        calculateGeneration();
+    }
+    
 }
 
-function spawnEnemy(speed = 1, row = -1){
+function spawnEnemy(multiplier = 1, row = -1){
     if (row == -1){
         let randomRow = Math.floor(Math.random() * 5); // random row between 0 and 4
-        let enemy = new enemy1(randomRow, speed); // spawn an enemy at row 0
+        let enemy = new enemy1(randomRow, multiplier); // spawn an enemy at row 0
         tileEnemies[randomRow].push(enemy); // add the enemy to the list of enemies
     }
     else {
-        let enemy = new enemy1(row-1, speed);
+        let enemy = new enemy1(row-1, multiplier);
         tileEnemies[row-1].push(enemy); // add the enemy to the list of enemies
     }
     
+}
+
+function spawnTimCheese(multiplier = 1, row = -1){
+    if (row == -1){
+        let randomRow = Math.floor(Math.random() * 5); // random row between 0 and 4
+        let timCheeseEnemy = new timCheese(randomRow, multiplier); // spawn an enemy at row 0
+        tileEnemies[randomRow].push(timCheeseEnemy); // add the enemy to the list of enemies
+    }
+    else {
+        let timCheeseEnemy = new timCheese(row-1, multiplier);
+        tileEnemies[row-1].push(timCheeseEnemy); // add the enemy to the list of enemies
+    }
 }
 
 function draw() {
@@ -548,6 +654,17 @@ function renderCharacters(){
             let enemy = tileEnemies[row][i];
             if (!paused){enemy.update();}
             enemy.render();
+        }
+    }
+
+    //projectiles
+    for (let row = 0; row < 5; row++) {
+        let projectiles = tileProjectiles[row];
+        for (let i = projectiles.length - 1; i >= 0; i--) {
+            let proj = projectiles[i];
+            if (paused == false) {proj.update()};
+            proj.render();
+            if (proj.active == false) {projectiles.splice(i, 1);}
         }
     }
 }
@@ -792,7 +909,7 @@ function beginGame(){
     wavesCompleted = 0; 
     spawnWave();
     wavesCompleted++;
-    console.log(totalWaves);
+    // console.log(totalWaves);
     //clear and begin the interval for rounds
     if(beginGame.waveInterval){clearInterval(beginGame.waveInterval)};
     beginGame.waveInterval = setInterval(function() {
@@ -806,14 +923,13 @@ function beginGame(){
 function spawnWave(endlessMultiplier){
     // spawn enemies based on the difficulty
     let difficulty = gameScreen; // set difficulty based on game screen
-    let enemiesPerWave = difficulty*1 + 4; 
+    let endlessComponent = Math.floor(endlessMultiplier*4);
+    let enemiesPerWave = difficulty*1 + 4 + endlessComponent; 
 
     // spawn enemies in random rows
-    let enemyboost = Math.floor(1-endlessMultiplier)*10;
-    let newEnemyCount = enemiesPerWave + enemyboost;
-    for (let i = 0; i < enemiesPerWave; i++) {
-        spawnEnemy(endlessMultiplier);
-    }
+    for (let i = 0; i < enemiesPerWave; i++) {spawnEnemy(endlessMultiplier);}
+    spawnTimCheese(endlessMultiplier);
+
 }
 
 function gameOverFunction(){
