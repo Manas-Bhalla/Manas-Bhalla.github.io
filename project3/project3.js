@@ -587,6 +587,8 @@ function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height); // clear the canvas
     requestAnimationFrame(draw); // next frame for animation
 
+    // console.log("health: " + health);
+    if (health <= 0 && debug == false){gameScreen = -1;} //death
 
     switch (gameScreen) { //handle the rendering based on the game screen
         case 0: //  menu and title screen
@@ -933,7 +935,19 @@ function spawnWave(endlessMultiplier){
 }
 
 function gameOverFunction(){
-    //TODO later
+        //OVERLAY
+        ctx.save(); // save state temporarily
+        ctx.fillStyle = "rgba(255, 255, 255, .5)"; // overlay
+        ctx.fillRect(0, 0, canvas.width, canvas.height); // draw the rectangle
+        ctx.restore();
+
+        //game over text 
+        ctx.save(); // save state temporarily
+        ctx.font = "75px times new roman"; // font 
+        ctx.textAlign = "center"; // align text 
+        ctx.fillText("Game Over!", canvas.width / 2 - 50, canvas.height / 2); // game over text
+        ctx.fillText("ctrl R to replay!", canvas.width / 2 - 50, canvas.height / 2 + 100); // game over text
+        ctx.restore(); //come back 
 }
 
 function drawText(){ //and paused overlay as well
