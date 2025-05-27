@@ -3,11 +3,14 @@
 const canvas = document.getElementById("gameCanvasProject3");
 const ctx = canvas.getContext("2d");
 
-let gameRunning = false; // Declare the gameRunning variable
-let paused = false; // Declare the paused variable
-let debug = true; // Declare the debug variable
-let godmode = false; // Declare the godmode variable 
-let gameScreen = 0; // Declare the game screen variable
+let enemyCount = 0;
+
+
+let gameRunning = false; 
+let paused = false; 
+let debug = true; 
+let godmode = false; 
+let gameScreen = 0; 
 let generation = 10;
 /*
 0 = main menu
@@ -22,8 +25,8 @@ const buttonWidth = 300;
 const buttonHeight = 80;
 const baseMoney = 750; 
 let money = baseMoney;
-let baseHealth = 100; // base health for the player
-let health = baseHealth; // current health for the player
+let baseHealth = 100; // base health 
+let health = baseHealth; // current health 
 
 const tileSize = 120;;
 const miniTileSize = 100;
@@ -83,6 +86,7 @@ class napoleon extends Tower {
     static image = new Image();
     static price = 100;
     static damage = 25;
+    static attackCooldown = 500; // miliseconds
     constructor(row, col) {
         super(row, col);
         this.health = 100;
@@ -93,9 +97,9 @@ class napoleon extends Tower {
     attack() {
         // fire if cooldown has passed and with enemies in the row
         if (!this.lastAttackTime) {this.lastAttackTime = Date.now()};
-        if (Date.now() - this.lastAttackTime >= 500 && tileEnemies[this.row].length > 0) {
+        if (Date.now() - this.lastAttackTime >= napoleon.attackCooldown && tileEnemies[this.row].length > 0) {
             // fir bullet
-            tileProjectiles[this.row].push(new napoleonBullet(this.row, this.col, this.x, this.y + miniTileSize / 2));
+            tileProjectiles[this.row].push(new napoleonBullet(this.row, this.col, this.x + miniTileSize, this.y + miniTileSize / 2));
             this.lastAttackTime = Date.now();
         }
     }
@@ -119,11 +123,7 @@ class napoleonBullet {
         for (let i = 0; i < enemies.length; i++) {
             let enemy = enemies[i];
             // collision
-            if (
-                this.x + this.radius > enemy.x &&
-                this.y + this.radius > cornerY + this.row * tileSize + tileSize / 4 &&
-                this.y - this.radius < cornerY + this.row * tileSize + tileSize / 4 + enemy.height
-            ) {
+            if (this.x + this.radius > enemy.x ) {
                 enemy.health = enemy.health - this.damage;
                 this.active = false;
                 break; //leave for loop afer finding an enemy
@@ -184,7 +184,7 @@ class johnPorkLaser{
 
 class skibidi extends Tower {
     static image = new Image();
-    static price = 500;
+    static price = 600;
     constructor(row, col) {
         super(row, col);
         this.maxHealth = 9999; 
@@ -215,7 +215,6 @@ class skibidi extends Tower {
 //enemies
 
 class enemy1{
-    // shared by all enemy1 objects
     constructor(row, multiplier = 1){
         this.row = row;
         this.x = 1250; // start at the leftmost column
@@ -227,7 +226,6 @@ class enemy1{
         // random speed
         this.speed = 1 + 0.1*multiplier * (0.8 + Math.random() * 0.4);
         this.speed = this.speed * .5; // cut it in half because its too fast
-        // console.log(this.speed);
 
         //random color for each RGB  
         let r = 0 + Math.floor(Math.random() * 256);
@@ -235,7 +233,7 @@ class enemy1{
         let b = 0 + Math.floor(Math.random() * 156);
         this.color = "rgb(" + r + ", " + g + ", " + b + ")";
 
-        // //logging for debugging
+        // //logging for debugging:
         // console.log("multiplier: " + multiplier);
         // console.log("max hp: " + this.maxHealth);
         // console.log("speed: " + this.speed);
@@ -252,11 +250,6 @@ class enemy1{
                 health = health - 10; 
                 }
             } // subtract 10 health
-
-        //other updates
-        
-        //test: decrease hp 
-        // this.health -= 0.5; // decrease health by 0.1 every frame
 
         //if enemy is in the same column as a tower and within 50 pixels of it, attack
         let col = Math.floor((this.x - cornerX) / tileSize); //column its on
@@ -377,18 +370,18 @@ const gameBlue = "rgb(62, 64, 163)"; // this is used frequently
 
 document.addEventListener("keydown", (event) => {
     switch (event.code) {
-        case "KeyD": // Toggle debug mode
-            debug = !debug; // Toggle the debug variable
+        case "KeyD": // debug mode
+            debug = !debug; 
             break;
         case "Escape": // remove held character
             heldCharacter = "none";
             break;
-        case "KeyP": // Toggle pause with P
-            paused = !paused; // Toggle the paused variable
+        case "KeyP": // Toggle pause 
+            paused = !paused; 
             break;
         case "KeyM": //menu
-            gameScreen = 0; // go to menu
-            resetBoard(); // reset board TODO
+            gameScreen = 0; 
+            resetBoard(); // reset board 
             break;
         // case "KeyB": //begin game
         //     beginGame();
@@ -473,7 +466,6 @@ canvas.addEventListener("mousemove", (event) => {
     }
 
     //hover effect on menu buttons
-    // Determine which menu button (if any) is hovered
     if (gameScreen == 0 && mouse.x >= 900 && mouse.x <= 1200) {
         if (mouse.y >= 200 && mouse.y <= 280) {hoveredMenuButton = 1;}
         else if (mouse.y >= 320 && mouse.y <= 400) {hoveredMenuButton = 2;}
@@ -488,9 +480,6 @@ canvas.addEventListener("mousemove", (event) => {
 });
 
 canvas.onclick = (event) => { 
-    const rect = canvas.getBoundingClientRect(); // Get canvas position and size
-    const clickX = event.clientX - rect.left; // Calculate X relative to the canvas
-    const clickY = event.clientY - rect.top; // Calculate Y relative to the canvas
 
     // hold character
     switch (hoveredSlotRow){
@@ -508,8 +497,7 @@ canvas.onclick = (event) => {
 
     // place character
     if (heldCharacter != "none" && hoveredSlotRow == -1){ placeCharacter();} // i added hovered slot row check to make sure console error is gone
-    // menu buttons
-    // menu navigation
+    // menu buttons and navigation
     if (hoveredMenuButton !== -1) {
         gameScreen = hoveredMenuButton;
         resetBoard();
@@ -518,7 +506,6 @@ canvas.onclick = (event) => {
 
 function placeCharacter(){
     //place held character at tile based on tile
-    // Place a new tower object based on heldCharacter
     let towerInstance = null;
     switch (heldCharacter) {
         case "napoleon":
@@ -573,11 +560,11 @@ function spawnTimCheese(multiplier = 1, row = -1){
     if (row == -1){
         let randomRow = Math.floor(Math.random() * 5); // random row between 0 and 4
         let timCheeseEnemy = new timCheese(randomRow, multiplier); // spawn an enemy at row 0
-        tileEnemies[randomRow].push(timCheeseEnemy); // add the enemy to the list of enemies
+        tileEnemies[randomRow].push(timCheeseEnemy); 
     }
-    else {
+    else { // specific row if i want that
         let timCheeseEnemy = new timCheese(row-1, multiplier);
-        tileEnemies[row-1].push(timCheeseEnemy); // add the enemy to the list of enemies
+        tileEnemies[row-1].push(timCheeseEnemy); 
     }
 }
 
@@ -586,6 +573,9 @@ function draw() {
     
     ctx.clearRect(0, 0, canvas.width, canvas.height); // clear the canvas
     requestAnimationFrame(draw); // next frame for animation
+
+    enemyCount = 0; // reset enemy count
+    for (let row = 0; row < 5; row++) {enemyCount += tileEnemies[row].length; }
 
     // console.log("health: " + health);
     if (health <= 0 && debug == false){gameScreen = -1;} //death
@@ -614,7 +604,7 @@ function draw() {
 function renderCharacters(){
     let tempImage;
 
-    //draw image of characters in the tile by iterating through the 2d list (tilecharacters)
+    //going through tilecharacters and render the towers
     for (let row = 0; row < 5; row++) {
         for (let column = 0; column < 9; column++) {
             let tower = tileCharacters[row][column]; // getting the object
@@ -626,7 +616,6 @@ function renderCharacters(){
     }   
 
     //draw image of whatever user is holding
-    // set tempImage based on character
     switch (heldCharacter){
         case "napoleon":
             tempImage = napoleon.image;
@@ -713,10 +702,10 @@ function renderMenu(){
         ctx.fillRect(startX, y, buttonWidth, buttonHeight);
         //hover effect - after button but before text
         if (hoveredMenuButton == i + 1) { // if the button is hovered...
-            ctx.save(); // save state temporarily
+            ctx.save(); // save
             ctx.fillStyle = "rgba(255, 255, 0, .5)"; 
             ctx.fillRect(startX, y, buttonWidth, buttonHeight); // draw the button
-            ctx.restore(); //come back to the last state
+            ctx.restore(); //come back 
         }
         //text
         ctx.fillStyle = "#fff";
@@ -759,8 +748,7 @@ function renderGameGui(){
     ctx.fillText("HP: " + health, 10, 70); // health text
     ctx.restore();
 
-    //draw tiles (first 320 pixels on X axis ignored as well as first 180 on y axis)
-    //use for loops to draw the tiles with alternating light and dark green colors
+    //draw tiles (first 320 pixels on X axis ignored as well as first 180 on y axis) with for loops
     for (let row = 0; row < 5; row++) {
         for (let column = 0; column < 9; column++) {
             if (row % 2 == column % 2){ctx.fillStyle = "lightgreen";} // alternate colors
@@ -840,21 +828,28 @@ function renderGameGui(){
 
     //draw bar of progress in a level
     if (totalWaves > 0 && gameScreen > 0) {
-        //progress bar background
+        //background
         ctx.save();
         ctx.fillStyle = "#ccc";
         ctx.fillRect(550, 100, buttonWidth, 20);
 
-        // Draw progress bar fill
+        //the bar
         let progress = Math.min(wavesCompleted / totalWaves, 1);
         ctx.fillStyle = gameBlue;
         ctx.fillRect(550, 100, buttonWidth * progress, 20);
 
-        // Draw progress text
+        //text
         ctx.font = "20px Times New Roman";
         ctx.fillStyle = "white";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
+        if(wavesCompleted >= totalWaves && gameScreen > 0 && gameScreen <= 4 && tileEnemies && enemyCount <= 0){ // you win text
+            ctx.save();
+            ctx.fillStyle = gameBlue;
+            ctx.font = "40px times new roman"; // font for win text
+            ctx.fillText("You win! click menu for the next level", (canvas.width - cornerX)*.5, 50);
+            ctx.restore();
+        }
         ctx.fillText("Wave " + wavesCompleted + " / " + totalWaves, 550 + buttonWidth / 2, 110);
         ctx.restore();
     }
@@ -975,8 +970,8 @@ function drawText(){ //and paused overlay as well
     
 
     //quick loop for enemy count
-    let enemyCount = 0;
-    for (let row = 0; row < 5; row++) {enemyCount += tileEnemies[row].length; }
+    // let enemyCount = 0;
+    // for (let row = 0; row < 5; row++) {enemyCount += tileEnemies[row].length; }
     ctx.fillText("enemy count: " + enemyCount, offset + 610, 25); // enemy count
     ctx.fillText("$ gen: " + generation, offset + 610, 50); // money generation
     }
@@ -996,8 +991,6 @@ function drawText(){ //and paused overlay as well
         ctx.restore(); //come back 
     }
 }
-
-
 
 // start drawing loop
 draw();
