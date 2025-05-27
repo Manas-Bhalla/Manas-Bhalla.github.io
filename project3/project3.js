@@ -85,7 +85,7 @@ class Tower {
 class napoleon extends Tower {
     static image = new Image();
     static price = 100;
-    static damage = 25;
+    static damage = 20;
     static attackCooldown = 500; // miliseconds
     constructor(row, col) {
         super(row, col);
@@ -115,9 +115,10 @@ class napoleonBullet {
         this.speed = 10;
         this.damage = napoleon.damage;
         this.active = true;
+        this.bulletColor = "silver";
     }
 
-    update() {
+    update(pierce = false) {
         this.x += this.speed;
         let enemies = tileEnemies[this.row];
         for (let i = 0; i < enemies.length; i++) {
@@ -125,8 +126,7 @@ class napoleonBullet {
             // collision
             if (this.x + this.radius > enemy.x ) {
                 enemy.health = enemy.health - this.damage;
-                this.active = false;
-                break; //leave for loop afer finding an enemy
+                if(pierce == false){this.active = false; break;}
             }
         }
         // remove if off screen
@@ -139,13 +139,36 @@ class napoleonBullet {
         ctx.save();
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
-        ctx.fillStyle = "silver";
+        ctx.fillStyle = this.bulletColor;
         ctx.fill();
         ctx.restore();
     }
 }
 
+class johnPorkLaser extends napoleonBullet{
+    constructor(row,col,x,y){
+        super(row,col,x,y);
+        
+        //color 
+        let r = 0 + Math.floor(Math.random() * 256);
+        let g = 0 + Math.floor(Math.random() * 256);
+        let b = 0 + Math.floor(Math.random() * 256);
+        this.bulletColor = "rgb(" + r + ", " + g + ", " + b + ")";
+        this.speed = 50;
+        this.damage = johnPork.damage;
+    }
 
+    render(){ //line instead of a 
+        ctx.save();
+        ctx.fillStyle = this.bulletColor;
+        ctx.fillRect(this.x - 10, this.y - 3, 20, 6);
+        ctx.restore();
+    }
+
+    update(){
+        super.update(true); // super but with pierce
+    }
+}
 
 class ttts extends Tower {
     static image = new Image();
@@ -170,17 +193,24 @@ class bateman extends Tower {
 
 class johnPork extends Tower {
     static image = new Image();
-    static price = 400;
+    static price = 500;
+    static attackCooldown = 10;
+    static damage = .05;
     constructor(row, col) {
         super(row, col);
         this.health = 100;
         this.image = johnPork.image;
     }
+    attack() {
+        if (!this.lastAttackTime) {this.lastAttackTime = Date.now()};
+        if (Date.now() - this.lastAttackTime >= johnPork.attackCooldown && tileEnemies[this.row].length >= 3) {
+            // fir bullet
+            tileProjectiles[this.row].push(new johnPorkLaser(this.row, this.col, this.x + miniTileSize, this.y + miniTileSize / 2));
+            this.lastAttackTime = Date.now();
+        }
+    }
 }
 
-class johnPorkLaser{
-
-}
 
 class skibidi extends Tower {
     static image = new Image();
@@ -217,9 +247,11 @@ class skibidi extends Tower {
 class enemy1{
     constructor(row, multiplier = 1){
         this.row = row;
+        this.lastMovement = 0;
         this.x = 1250; // start at the leftmost column
         this.maxHealth = Math.floor(90 + 10 * multiplier); // max health
-        this.health = this.maxHealth; // default health
+        this.maxHealth = this.maxHealth * (.8 + Math.random() * .4); //some random health too
+        this.health = this.maxHealth; // set the healt
         this.obstructed = false;
         this.width = 50;
         this.height = 50;
@@ -240,7 +272,12 @@ class enemy1{
     }
 
     update(damageBoost = 1){
-        if(this.obstructed == false){this.x = this.x - this.speed;} //move it
+        //movement
+        if (!this.lastMovement) {this.lastMovement = Date.now()};
+        if ((Date.now() - this.lastMovement >= 10) && this.obstructed == false) {
+            this.x = this.x - (3 * this.speed);
+            this.lastMovement = Date.now();
+        }
 
         // check if enemey has crossed the screen
         if (this.x < cornerX) {
@@ -901,7 +938,7 @@ function beginGame(){
     totalWaves = 10 + 5*(difficulty-1);
     let endless = false;
     if (gameScreen == 4){endless = true;}
-    if (endless){endlessMultiplier = 1.1; totalWaves = 9999;} //now i can square it repeatedly to increase difficulty throughout endless mode
+    if (endless){endlessMultiplier = 1.02; totalWaves = 9999;} //now i can square it repeatedly to increase difficulty throughout endless mode
 
     wavesCompleted = 0; 
     spawnWave();
@@ -911,8 +948,9 @@ function beginGame(){
     if(beginGame.waveInterval){clearInterval(beginGame.waveInterval)};
     beginGame.waveInterval = setInterval(function() {
         if (gameScreen < 1 || paused == true || wavesCompleted >= totalWaves) {console.log("waves inactive"); return;}
-        if(endless == true){endlessMultiplier = endlessMultiplier + .2;}
+        if(endless == true){endlessMultiplier = Math.pow(1.075, wavesCompleted);} 
         spawnWave(endlessMultiplier);
+        console.log("endless multiplier: " + endlessMultiplier);
         wavesCompleted++;
     }, 5000);
 }
