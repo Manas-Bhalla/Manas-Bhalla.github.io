@@ -84,9 +84,9 @@ class Tower {
 
 class napoleon extends Tower {
     static image = new Image();
-    static price = 100;
+    static price = 225;
     static damage = 20;
-    static attackCooldown = 500; // miliseconds
+    static attackCooldown = 500/3; // miliseconds
     constructor(row, col) {
         super(row, col);
         this.health = 100;
@@ -183,7 +183,7 @@ class ttts extends Tower {
 
 class bateman extends Tower {
     static image = new Image();
-    static price = 75;
+    static price = 150;
     constructor(row, col) {
         super(row, col);
         this.health = 100;
@@ -214,7 +214,7 @@ class johnPork extends Tower {
 
 class skibidi extends Tower {
     static image = new Image();
-    static price = 600;
+    static price = 990;
     constructor(row, col) {
         super(row, col);
         this.maxHealth = 9999; 
@@ -764,7 +764,7 @@ function calculateGeneration(){
     let zzz = 10;
     for (let row = 0; row < 5; row++) {
         for(let col = 0; col < 9; col++){
-            if (tileCharacters[row][col] instanceof bateman){zzz = zzz + 10;}
+            if (tileCharacters[row][col] instanceof bateman){zzz = zzz + 20;}
         }
     }
 
