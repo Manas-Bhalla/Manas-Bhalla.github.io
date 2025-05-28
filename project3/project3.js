@@ -8,7 +8,7 @@ let enemyCount = 0;
 
 let gameRunning = false; 
 let paused = false; 
-let debug = true; 
+let debug = false; 
 let godmode = false; 
 let gameScreen = 0; 
 let generation = 10;
@@ -195,7 +195,7 @@ class johnPork extends Tower {
     static image = new Image();
     static price = 500;
     static attackCooldown = 10;
-    static damage = .05;
+    static damage = .25;
     constructor(row, col) {
         super(row, col);
         this.health = 100;
@@ -203,7 +203,7 @@ class johnPork extends Tower {
     }
     attack() {
         if (!this.lastAttackTime) {this.lastAttackTime = Date.now()};
-        if (Date.now() - this.lastAttackTime >= johnPork.attackCooldown && tileEnemies[this.row].length >= 3) {
+        if (Date.now() - this.lastAttackTime >= johnPork.attackCooldown && tileEnemies[this.row].length >= 2) {
             // fir bullet
             tileProjectiles[this.row].push(new johnPorkLaser(this.row, this.col, this.x + miniTileSize, this.y + miniTileSize / 2));
             this.lastAttackTime = Date.now();
@@ -246,18 +246,23 @@ class skibidi extends Tower {
 
 class enemy1{
     constructor(row, multiplier = 1){
+        // anti lag:
+        if (multiplier >= 999){multiplier = 999;}
+
+
         this.row = row;
         this.lastMovement = 0;
         this.x = 1250; // start at the leftmost column
-        this.maxHealth = Math.floor(90 + 10 * multiplier); // max health
+        this.maxHealth = Math.floor(80 + 20 * multiplier); // max health
         this.maxHealth = this.maxHealth * (.8 + Math.random() * .4); //some random health too
         this.health = this.maxHealth; // set the healt
         this.obstructed = false;
         this.width = 50;
         this.height = 50;
         // random speed
-        this.speed = 1 + 0.1*multiplier * (0.8 + Math.random() * 0.4);
-        this.speed = this.speed * .5; // cut it in half because its too fast
+        this.speed = (.3)*multiplier * (0.8 + Math.random() * 0.4);
+        // console.log("speed: " + this.speed);
+        // console.log("multplier of me: " + multiplier);
 
         //random color for each RGB  
         let r = 0 + Math.floor(Math.random() * 256);
@@ -265,9 +270,11 @@ class enemy1{
         let b = 0 + Math.floor(Math.random() * 156);
         this.color = "rgb(" + r + ", " + g + ", " + b + ")";
 
+        
+
         // //logging for debugging:
-        // console.log("multiplier: " + multiplier);
-        // console.log("max hp: " + this.maxHealth);
+        console.log("multiplier: " + multiplier);
+        console.log("max hp: " + this.maxHealth);
         // console.log("speed: " + this.speed);
     }
 
@@ -275,7 +282,7 @@ class enemy1{
         //movement
         if (!this.lastMovement) {this.lastMovement = Date.now()};
         if ((Date.now() - this.lastMovement >= 10) && this.obstructed == false) {
-            this.x = this.x - (3 * this.speed);
+            this.x = this.x - (2 * this.speed);
             this.lastMovement = Date.now();
         }
 
@@ -326,7 +333,7 @@ class timCheese extends enemy1 {
 
     constructor(row, multiplier = 1){
         super(row, multiplier);
-        this.speed = this.speed / 3;
+        this.speed = this.speed / 2;
         this.maxHealth = this.maxHealth * 5;
         this.health = this.maxHealth;
         this.width = 75;
@@ -403,9 +410,9 @@ let hoveredTile = {
 let heldCharacter = "none";
 
 // random constants
-const gameBlue = "rgb(62, 64, 163)"; // this is used frequently
+const gameBlue = "rgb(62, 64, 163)"; // used frequently
 
-document.addEventListener("keydown", (event) => {
+document.addEventListener("keydown", function(event) {
     switch (event.code) {
         case "KeyD": // debug mode
             debug = !debug; 
@@ -469,7 +476,7 @@ document.addEventListener("keydown", (event) => {
 });
 
 //mouse methods
-canvas.addEventListener("mousemove", (event) => {
+canvas.addEventListener("mousemove", function(event) {
     const rect = canvas.getBoundingClientRect(); // Get the canvas's position and size
     const scaleX = canvas.width / rect.width; // Horizontal scaling factor
     const scaleY = canvas.height / rect.height; // Vertical scaling factor
@@ -516,7 +523,7 @@ canvas.addEventListener("mousemove", (event) => {
     }
 });
 
-canvas.onclick = (event) => { 
+canvas.onclick = function(event) { 
 
     // hold character
     switch (hoveredSlotRow){
@@ -568,7 +575,7 @@ function placeCharacter(){
         default:
             towerInstance = null;
     }
-    if (money - towerPrices[lastHoveredSlotRow] > 0 || debug == true){ //only place if you have enough money or if im in debug mode
+    if (money - towerPrices[lastHoveredSlotRow] >= 0 || debug == true){ //only place if you have enough money or if im in debug mode
         tileCharacters[hoveredTile.row][hoveredTile.col] = towerInstance;
 
         //money check
@@ -581,6 +588,7 @@ function placeCharacter(){
 }
 
 function spawnEnemy(multiplier = 1, row = -1){
+    if(enemyCount >= 5000){return;} // anti lag
     if (row == -1){
         let randomRow = Math.floor(Math.random() * 5); // random row between 0 and 4
         let enemy = new enemy1(randomRow, multiplier); // spawn an enemy at row 0
@@ -767,14 +775,12 @@ function handleTime(){ //really just handles money
     
     // make sure we are on the same seclnd
     if (!handleTime.lastTime) {handleTime.lastTime = Date.now();}
-
+    if(paused){handleTime.lastTime = Date.now();} // block the user from spamming pause and retaining their full income!!!
     if (Date.now() - handleTime.lastTime >= 1000 && !paused) { //over one tenth of a second - add money
         money = money + generation;
         handleTime.lastTime = Date.now();
     }
 
-    
-    
 }
 
 function renderGameGui(){
@@ -930,6 +936,7 @@ function resetBoard(){
 
 let wavesCompleted = 0; // number of waves completed
 let totalWaves = -1;
+let waveInterval = 5000; // interval in miliseconds for the wave
 
 function beginGame(){
     //board should be plain when this is called from reset board
@@ -938,7 +945,7 @@ function beginGame(){
     totalWaves = 10 + 5*(difficulty-1);
     let endless = false;
     if (gameScreen == 4){endless = true;}
-    if (endless){endlessMultiplier = 1.02; totalWaves = 9999;} //now i can square it repeatedly to increase difficulty throughout endless mode
+    if (endless){endlessMultiplier = 1.02; totalWaves = 999;} //now i can square it repeatedly to increase difficulty throughout endless mode
 
     wavesCompleted = 0; 
     spawnWave();
@@ -950,9 +957,9 @@ function beginGame(){
         if (gameScreen < 1 || paused == true || wavesCompleted >= totalWaves) {console.log("waves inactive"); return;}
         if(endless == true){endlessMultiplier = Math.pow(1.075, wavesCompleted);} 
         spawnWave(endlessMultiplier);
-        console.log("endless multiplier: " + endlessMultiplier);
+        // console.log("endless multiplier: " + endlessMultiplier);
         wavesCompleted++;
-    }, 5000);
+    }, waveInterval);
 }
 
 function spawnWave(endlessMultiplier){
@@ -960,6 +967,8 @@ function spawnWave(endlessMultiplier){
     let difficulty = gameScreen; // set difficulty based on game screen
     let endlessComponent = Math.floor(endlessMultiplier*4);
     let enemiesPerWave = difficulty*1 + 4 + endlessComponent; 
+
+    if(enemiesPerWave >= 5000){enemiesPerWave = 5000};
 
     // spawn enemies in random rows
     for (let i = 0; i < enemiesPerWave; i++) {spawnEnemy(endlessMultiplier);}
@@ -979,7 +988,7 @@ function gameOverFunction(){
         ctx.font = "75px times new roman"; // font 
         ctx.textAlign = "center"; // align text 
         ctx.fillText("Game Over!", canvas.width / 2 - 50, canvas.height / 2); // game over text
-        ctx.fillText("ctrl R to replay!", canvas.width / 2 - 50, canvas.height / 2 + 100); // game over text
+        ctx.fillText("press M to go to the menu to replay!", canvas.width / 2 - 50, canvas.height / 2 + 100); // game over text
         ctx.restore(); //come back 
 }
 
