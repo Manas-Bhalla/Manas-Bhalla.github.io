@@ -217,7 +217,7 @@ class skibidi extends Tower {
     static price = 990;
     constructor(row, col) {
         super(row, col);
-        this.maxHealth = 9999; 
+        this.maxHealth = 999999; 
         this.health = this.maxHealth;
         this.image = skibidi.image;
     }
@@ -427,6 +427,9 @@ document.addEventListener("keydown", function(event) {
             gameScreen = 0; 
             resetBoard(); // reset board 
             break;
+        case "KeyG":
+            goldenSkibidi = !goldenSkibidi;
+            break;
         // case "KeyB": //begin game
         //     beginGame();
         //     gameRunning = true;
@@ -472,7 +475,7 @@ document.addEventListener("keydown", function(event) {
     } else if (event.key === "s") {
         spawnEnemy(-1); // random row spawn (-1)
         // console.log(tileEnemies);
-    }
+    } 
 });
 
 //mouse methods
@@ -1011,6 +1014,7 @@ function drawText(){ //and paused overlay as well
     ctx.fillText("hovered slot row: " + hoveredSlotRow + " (" + lastHoveredSlotRow + ")", offset + 310, 50); // hovered slot row
     ctx.fillText("held character: " + heldCharacter, offset + 310, 75); // held character
     // ctx.fillText("hovered menu button: " + hoveredMenuButton, offset + 310, 100); // hovered menu button
+    ctx.fillText("golden skibidi: " + goldenSkibidi, offset + 310, 100);
 
     //column 3
     // ctx.fillText("last hovered slot row: " + lastHoveredSlotRow, 800, 25); // last hovered slot row
